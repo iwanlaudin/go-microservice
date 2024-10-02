@@ -13,6 +13,7 @@ import (
 	"github.com/iwanlaudin/go-microservice/pkg/common/config"
 	"github.com/iwanlaudin/go-microservice/pkg/common/database"
 	"github.com/iwanlaudin/go-microservice/pkg/common/logger"
+	"github.com/iwanlaudin/go-microservice/services/order/internal/api/routes"
 )
 
 func main() {
@@ -42,6 +43,9 @@ func main() {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+
+	// Route
+	routes.SetupRoutes(r)
 
 	// Konfigurasi server
 	srv := &http.Server{

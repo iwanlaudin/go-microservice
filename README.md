@@ -1,3 +1,7 @@
+# GO Microservice
+
+## Structure Directory
+```
 myproject/
 ├── services/
 │   ├── order/
@@ -47,3 +51,5 @@ myproject/
 ├── go.mod
 ├── go.sum
 └── README.md
+
+```

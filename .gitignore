@@ -1,0 +1,45 @@
+# Binaries
+*.exe
+*.exe~
+*.out
+*.test
+*.app
+*.dmg
+*.deb
+*.rpm
+
+# Go build artifacts
+/bin/
+/obj/
+vendor/
+
+# Go modules
+go.sum
+
+# Environment variables
+.env
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+
+# Mac system files
+.DS_Store
+
+# Logs
+*.log
+
+# Coverage files
+*.cov
+*.out
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Other
+*.zip
+*.tar.gz
+*.tgz
