@@ -41,15 +41,15 @@ myproject/
 └── README.md
 ```
 
-## Fitur
+## Features
 
-- **API RESTful**: Mengelola data dengan endpoint CRUD yang mudah diakses.
-- **Rate Limiting**: Mengontrol jumlah permintaan yang dapat dilakukan oleh klien dalam periode waktu tertentu untuk mencegah penyalahgunaan dan memastikan kualitas layanan.
-- **API Versioning**: Menyediakan beberapa versi API untuk memungkinkan perubahan tanpa mengganggu pengguna yang ada.
-- **Autentikasi dan Otorisasi**: Menggunakan token JWT untuk keamanan API.
-- **Manajemen Antrian**: Integrasi dengan RabbitMQ untuk pengolahan asinkron.
-- **Pengelolaan Konfigurasi**: Mudah disesuaikan melalui variabel lingkungan.
-- **Logging dan Monitoring**: Pemantauan aktivitas aplikasi dan pencatatan kesalahan.
-- **Skalabilitas**: Dirancang untuk menampung pertumbuhan pengguna.
-- **Penyimpanan Data**: Dukungan untuk jenis database postgres.
-- **Pengelolaan Kesalahan**: Menyediakan respons kesalahan yang jelas.
+- **RESTful API**: Manage data with easily accessible CRUD endpoints.
+- **Rate Limiting**: Controls the number of requests a client can make in a given time period to prevent abuse and ensure quality of service.
+- **API Versioning**: Provides multiple versions of the API to allow changes without disrupting existing users.
+- **Authentication and Authorization**: Uses JWT tokens for API security.
+- **Queue Management**: Integration with RabbitMQ for asynchronous processing.
+- **Configuration Management**: Easily customizable via environment variables.
+- **Logging and Monitoring**: Application activity monitoring and error logging.
+- **Scalability**: Designed to accommodate user growth.
+- **Data Storage**: Support for postgres database types.
+- **Error Management**: Provides clear error response.

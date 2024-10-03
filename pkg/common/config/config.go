@@ -15,12 +15,9 @@ var (
 )
 
 type Config struct {
-	DBHost             string
-	DBPort             string
-	DBUser             string
-	DBPassword         string
-	DBName             string
-	DBSSLMode          string
+	AuthDbURL          string
+	OrderDbURL         string
+	PaymentDbURL       string
 	OrderServicePort   string
 	PaymentServicePort string
 	LogLevel           string
@@ -36,12 +33,9 @@ func Load() *Config {
 	}
 
 	config := &Config{
-		DBHost:             getEnv("DB_HOST", "localhost"),
-		DBPort:             getEnv("DB_PORT", "5432"),
-		DBUser:             getEnv("DB_USER", "postgres"),
-		DBPassword:         getEnv("DB_PASSWORD", ""),
-		DBName:             getEnv("DB_NAME", "myproject"),
-		DBSSLMode:          getEnv("DB_SSLMODE", "disable"),
+		AuthDbURL:          getEnv("ORDER_DB_URL", "postgres://user:password@authDb:5432/orderdb?sslmode=disable"),
+		OrderDbURL:         getEnv("ORDER_DB_URL", "postgres://user:password@orderdb:5432/orderdb?sslmode=disable"),
+		PaymentDbURL:       getEnv("PAYMENT_DB_URL", "postgres://user:password@orderdb:5432/paymentDb?sslmode=disable"),
 		OrderServicePort:   getEnv("ORDER_SERVICE_PORT", ":8080"),
 		PaymentServicePort: getEnv("PAYMENT_SERVICE_PORT", ":8081"),
 		LogLevel:           getEnv("LOG_LEVEL", "info"),

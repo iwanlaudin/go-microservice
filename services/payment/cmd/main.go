@@ -23,7 +23,7 @@ func main() {
 	log := logger.New(cfg.LogLevel)
 
 	// Inisialisasi koneksi database
-	db, err := database.NewConnection(cfg)
+	db, err := database.NewConnection(cfg.PaymentDbURL)
 	if err != nil {
 		log.Fatal("Failed to connect to database", logger.Error(err))
 	}
