@@ -41,8 +41,8 @@ func Load() *Config {
 		DBPassword:         getEnv("DB_PASSWORD", ""),
 		DBName:             getEnv("DB_NAME", "myproject"),
 		DBSSLMode:          getEnv("DB_SSLMODE", "disable"),
-		OrderServicePort:   getEnv("ORDER_SERVICE_PORT", "8080"),
-		PaymentServicePort: getEnv("PAYMENT_SERVICE_PORT", "8081"),
+		OrderServicePort:   getEnv("ORDER_SERVICE_PORT", ":8080"),
+		PaymentServicePort: getEnv("PAYMENT_SERVICE_PORT", ":8081"),
 		LogLevel:           getEnv("LOG_LEVEL", "info"),
 		SecretKey:          getEnv("SECRET_KEY", "x-secret-key"),
 	}

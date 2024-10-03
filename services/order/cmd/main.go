@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/iwanlaudin/go-microservice/pkg/common/api"
 	"github.com/iwanlaudin/go-microservice/pkg/common/config"
 	"github.com/iwanlaudin/go-microservice/pkg/common/database"
 	"github.com/iwanlaudin/go-microservice/pkg/common/logger"
@@ -17,42 +18,47 @@ import (
 )
 
 func main() {
-	// Load konfigurasi
+	// Load .env Configuration
 	cfg := config.Load()
 
-	// Inisialisasi logger
+	// Initialize logger
 	log := logger.New(cfg.LogLevel)
 
-	// Inisialisasi koneksi database
+	// Initialize Database Connection
 	db, err := database.NewConnection(cfg)
 	if err != nil {
 		log.Fatal("Failed to connect to database", logger.Error(err))
 	}
 	defer db.Close()
 
-	// Jalankan migrasi database
+	// Run Database Migrations
 	if err := database.RunMigrations(db); err != nil {
 		log.Fatal("Failed to run database migrations", logger.Error(err))
 	}
 
-	// Inisialisasi router
+	// Initialize Router
 	r := chi.NewRouter()
 
-	// Middleware
+	// Base Middleware
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
+	// Cutome Middleware
+	// Set global timeout to 15 seconds
+	r.Use(api.TimeoutMiddleware(15 * time.Second))
+
 	// Route
 	routes.SetupRoutes(r)
 
-	// Konfigurasi server
+	// Configuration Server
 	srv := &http.Server{
 		Addr:         cfg.OrderServicePort,
 		Handler:      r,
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  20 * time.Second,
+		WriteTimeout: 20 * time.Second,
+		IdleTimeout:  60 * time.Second,
 	}
 
 	// Run server

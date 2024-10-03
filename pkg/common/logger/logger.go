@@ -7,7 +7,6 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// Logger adalah interface untuk logger kustom kita
 type Logger interface {
 	Debug(msg string, fields ...zapcore.Field)
 	Info(msg string, fields ...zapcore.Field)
@@ -20,9 +19,13 @@ type zapLogger struct {
 	sugaredLogger *zap.SugaredLogger
 }
 
-// New membuat instance baru dari logger
 func New(logLevel string) Logger {
-	config := zap.NewProductionConfig()
+	config := zap.Config{
+		Encoding:         "json", // Or “console” if you want terminal format
+		EncoderConfig:    zap.NewDevelopmentEncoderConfig(),
+		OutputPaths:      []string{"stdout"},
+		ErrorOutputPaths: []string{"stderr"},
+	}
 
 	// Set level berdasarkan konfigurasi
 	switch logLevel {
@@ -72,12 +75,21 @@ func (l *zapLogger) Fatal(msg string, fields ...zapcore.Field) {
 	os.Exit(1)
 }
 
-// fieldsToInterface mengkonversi zap.Field ke interface{} untuk SugaredLogger
 func fieldsToInterface(fields []zapcore.Field) []interface{} {
 	result := make([]interface{}, len(fields)*2)
 	for i, field := range fields {
 		result[i*2] = field.Key
-		result[i*2+1] = field.Interface
+
+		switch field.Type {
+		case zapcore.StringType:
+			result[i*2+1] = field.String
+		case zapcore.Int64Type:
+			result[i*2+1] = field.Integer
+		case zapcore.BoolType:
+			result[i*2+1] = field.Integer == 1
+		default:
+			result[i*2+1] = "unknown"
+		}
 	}
 	return result
 }
