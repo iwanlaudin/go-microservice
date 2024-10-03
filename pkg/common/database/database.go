@@ -6,6 +6,7 @@ import (
 
 	"github.com/iwanlaudin/go-microservice/pkg/common/config"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq" // PostgreSQL driver
 )
 
 // NewConnection membuat koneksi baru ke database
