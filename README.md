@@ -40,3 +40,16 @@ myproject/
 ├── go.sum
 └── README.md
 ```
+
+## Fitur
+
+- **API RESTful**: Mengelola data dengan endpoint CRUD yang mudah diakses.
+- **Rate Limiting**: Mengontrol jumlah permintaan yang dapat dilakukan oleh klien dalam periode waktu tertentu untuk mencegah penyalahgunaan dan memastikan kualitas layanan.
+- **API Versioning**: Menyediakan beberapa versi API untuk memungkinkan perubahan tanpa mengganggu pengguna yang ada.
+- **Autentikasi dan Otorisasi**: Menggunakan token JWT untuk keamanan API.
+- **Manajemen Antrian**: Integrasi dengan RabbitMQ untuk pengolahan asinkron.
+- **Pengelolaan Konfigurasi**: Mudah disesuaikan melalui variabel lingkungan.
+- **Logging dan Monitoring**: Pemantauan aktivitas aplikasi dan pencatatan kesalahan.
+- **Skalabilitas**: Dirancang untuk menampung pertumbuhan pengguna.
+- **Penyimpanan Data**: Dukungan untuk jenis database postgres.
+- **Pengelolaan Kesalahan**: Menyediakan respons kesalahan yang jelas.
