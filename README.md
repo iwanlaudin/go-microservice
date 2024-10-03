@@ -1,3 +1,4 @@
+![Golang Logo](https://ddev.com/img/blog/2024/05/golang-nerd-banner.png)
 # GO Microservice
 
 ## Structure Directory
@@ -16,19 +17,6 @@ myproject/
 │   │   │   ├── repository/       # Lapisan akses data Order
 │   │   │   └── service/          # Logika bisnis Order
 │   │   ├── config/               # Konfigurasi Order service
-│   │   └── Dockerfile
-│   ├── payment/
-│   │   ├── cmd/
-│   │   │   └── main.go           # Entry point untuk Payment service
-│   │   ├── internal/
-│   │   │   ├── api/
-│   │   │   │   ├── handlers/     # HTTP request handlers untuk Payment
-│   │   │   │   ├── middleware/   # HTTP middleware khusus Payment
-│   │   │   │   └── routes/       # Payment API route definitions
-│   │   │   ├── models/           # Model data Payment
-│   │   │   ├── repository/       # Lapisan akses data Payment
-│   │   │   └── service/          # Logika bisnis Payment
-│   │   ├── config/               # Konfigurasi Payment service
 │   │   └── Dockerfile
 │   └── ...                       # Folder untuk service lainnya
 ├── pkg/
@@ -51,5 +39,4 @@ myproject/
 ├── go.mod
 ├── go.sum
 └── README.md
-
 ```
