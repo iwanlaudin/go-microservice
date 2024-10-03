@@ -18,6 +18,7 @@ type Config struct {
 	AuthDbURL          string
 	OrderDbURL         string
 	PaymentDbURL       string
+	AuthServicePort    string
 	OrderServicePort   string
 	PaymentServicePort string
 	LogLevel           string
@@ -36,8 +37,9 @@ func Load() *Config {
 		AuthDbURL:          getEnv("ORDER_DB_URL", "postgres://user:password@authDb:5432/orderdb?sslmode=disable"),
 		OrderDbURL:         getEnv("ORDER_DB_URL", "postgres://user:password@orderdb:5432/orderdb?sslmode=disable"),
 		PaymentDbURL:       getEnv("PAYMENT_DB_URL", "postgres://user:password@orderdb:5432/paymentDb?sslmode=disable"),
-		OrderServicePort:   getEnv("ORDER_SERVICE_PORT", ":8080"),
-		PaymentServicePort: getEnv("PAYMENT_SERVICE_PORT", ":8081"),
+		AuthServicePort:    getEnv("AUTH_SERVICE_PORT", ":8080"),
+		OrderServicePort:   getEnv("ORDER_SERVICE_PORT", ":8081"),
+		PaymentServicePort: getEnv("PAYMENT_SERVICE_PORT", ":8082"),
 		LogLevel:           getEnv("LOG_LEVEL", "info"),
 		SecretKey:          getEnv("SECRET_KEY", "x-secret-key"),
 		RabbitMQURL:        getEnv("RABBIT_MQ_URL", "amqp://guest:guest@localhost:5672/"),
