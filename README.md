@@ -49,7 +49,9 @@ myproject/
 - **Authentication and Authorization**: Uses JWT tokens for API security.
 - **Queue Management**: Integration with RabbitMQ for asynchronous processing.
 - **Configuration Management**: Easily customizable via environment variables.
-- **Logging and Monitoring**: Application activity monitoring and error logging.
+- **Redis Caching**: Caches frequently accessed data using Redis to improve response times and reduce database load.
+- **Graceful Shutdown**: Application can gracefully handle shutdown signals to ensure ongoing processes complete before termination.
+- **Logging**: Structured logging with Zap for easier debugging and tracing.
 - **Scalability**: Designed to accommodate user growth.
 - **Data Storage**: Support for postgres database types.
 - **Error Management**: Provides clear error response.

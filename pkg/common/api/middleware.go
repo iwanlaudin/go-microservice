@@ -5,9 +5,11 @@ import (
 	"log"
 	"net/http"
 	"runtime/debug"
+	"strconv"
 	"sync"
 	"time"
 
+	"github.com/iwanlaudin/go-microservice/pkg/redis"
 	"golang.org/x/time/rate"
 )
 
@@ -79,6 +81,38 @@ func RateLimiterPerIP() func(http.Handler) http.Handler {
 				NewAppError(nil, "Too Many Requests", http.StatusTooManyRequests).SendResponse(w)
 				return
 			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func RedisRateLimiter(redisClient *redis.RedisClient, limit int, window time.Duration) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			key := "ratelimit:" + r.RemoteAddr
+
+			count, err := redisClient.Client.Incr(ctx, key).Result()
+			if err != nil {
+				// Handle error or fallback to allowing the request
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			if count == 1 {
+				redisClient.Client.Expire(ctx, key, window)
+			}
+
+			if count > int64(limit) {
+				w.Header().Set("X-RateLimit-Limit", strconv.Itoa(limit))
+				w.Header().Set("X-RateLimit-Remaining", "0")
+				NewAppError(nil, "Rate limit exceeded", http.StatusTooManyRequests).SendResponse(w)
+				return
+			}
+
+			w.Header().Set("X-RateLimit-Limit", strconv.Itoa(limit))
+			w.Header().Set("X-RateLimit-Remaining", strconv.Itoa(limit-int(count)))
+
 			next.ServeHTTP(w, r)
 		})
 	}

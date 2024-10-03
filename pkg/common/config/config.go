@@ -24,6 +24,7 @@ type Config struct {
 	LogLevel           string
 	SecretKey          string
 	RabbitMQURL        string
+	RedisURL           string
 }
 
 func Load() *Config {
@@ -43,6 +44,7 @@ func Load() *Config {
 		LogLevel:           getEnv("LOG_LEVEL", "info"),
 		SecretKey:          getEnv("SECRET_KEY", "x-secret-key"),
 		RabbitMQURL:        getEnv("RABBIT_MQ_URL", "amqp://guest:guest@localhost:5672/"),
+		RedisURL:           getEnv("REDIS_URL", "redis://:<password>@localhost:6379/0"),
 	}
 
 	secretKey = []byte(config.SecretKey)
