@@ -14,6 +14,7 @@ import (
 	"github.com/iwanlaudin/go-microservice/pkg/common/config"
 	"github.com/iwanlaudin/go-microservice/pkg/common/database"
 	"github.com/iwanlaudin/go-microservice/pkg/common/logger"
+	"github.com/iwanlaudin/go-microservice/pkg/redis"
 	"github.com/iwanlaudin/go-microservice/services/authentication/internal/api/routes"
 )
 
@@ -35,6 +36,13 @@ func main() {
 	if err := database.RunMigrations(db); err != nil {
 		log.Fatal("Failed to run database migrations", logger.Error(err))
 	}
+
+	// Initialize redis client
+	redisClient, err := redis.NewRedisClient(cfg.RedisURL)
+	if err != nil {
+		log.Fatal("Failed to connect to redis", logger.Error(err))
+	}
+	defer redisClient.Client.Close()
 
 	// Initialize Router
 	r := chi.NewRouter()

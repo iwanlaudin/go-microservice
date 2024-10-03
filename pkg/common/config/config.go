@@ -35,7 +35,7 @@ func Load() *Config {
 	}
 
 	config := &Config{
-		AuthDbURL:          getEnv("ORDER_DB_URL", "postgres://user:password@authDb:5432/orderdb?sslmode=disable"),
+		AuthDbURL:          getEnv("AUTH_DB_URL", "postgres://user:password@authDb:5432/authDb?sslmode=disable"),
 		OrderDbURL:         getEnv("ORDER_DB_URL", "postgres://user:password@orderdb:5432/orderdb?sslmode=disable"),
 		PaymentDbURL:       getEnv("PAYMENT_DB_URL", "postgres://user:password@orderdb:5432/paymentDb?sslmode=disable"),
 		AuthServicePort:    getEnv("AUTH_SERVICE_PORT", ":8080"),
