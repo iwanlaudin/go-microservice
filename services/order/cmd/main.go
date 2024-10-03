@@ -14,6 +14,7 @@ import (
 	"github.com/iwanlaudin/go-microservice/pkg/common/config"
 	"github.com/iwanlaudin/go-microservice/pkg/common/database"
 	"github.com/iwanlaudin/go-microservice/pkg/common/logger"
+	"github.com/iwanlaudin/go-microservice/pkg/rabbitmq"
 	"github.com/iwanlaudin/go-microservice/services/order/internal/api/routes"
 )
 
@@ -35,6 +36,13 @@ func main() {
 	if err := database.RunMigrations(db); err != nil {
 		log.Fatal("Failed to run database migrations", logger.Error(err))
 	}
+
+	// Initialize RabbitMQ
+	rabbitMQ, err := rabbitmq.NewRabbitMQ(cfg.RabbitMQURL)
+	if err != nil {
+		log.Fatal("Failed to connect to RabbitMQ:", logger.Error(err))
+	}
+	defer rabbitMQ.Close()
 
 	// Initialize Router
 	r := chi.NewRouter()

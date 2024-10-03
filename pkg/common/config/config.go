@@ -25,6 +25,7 @@ type Config struct {
 	PaymentServicePort string
 	LogLevel           string
 	SecretKey          string
+	RabbitMQURL        string
 }
 
 func Load() *Config {
@@ -45,6 +46,7 @@ func Load() *Config {
 		PaymentServicePort: getEnv("PAYMENT_SERVICE_PORT", ":8081"),
 		LogLevel:           getEnv("LOG_LEVEL", "info"),
 		SecretKey:          getEnv("SECRET_KEY", "x-secret-key"),
+		RabbitMQURL:        getEnv("RABBIT_MQ_URL", "amqp://guest:guest@localhost:5672/"),
 	}
 
 	secretKey = []byte(config.SecretKey)

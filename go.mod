@@ -13,4 +13,7 @@ require (
 	golang.org/x/time v0.6.0
 )
 
-require go.uber.org/multierr v1.11.0 // indirect
+require (
+	github.com/rabbitmq/amqp091-go v1.10.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
+)

@@ -87,6 +87,8 @@ func fieldsToInterface(fields []zapcore.Field) []interface{} {
 			result[i*2+1] = field.Integer
 		case zapcore.BoolType:
 			result[i*2+1] = field.Integer == 1
+		case zapcore.ErrorType:
+			result[i*2+1] = field.Interface
 		default:
 			result[i*2+1] = "unknown"
 		}
