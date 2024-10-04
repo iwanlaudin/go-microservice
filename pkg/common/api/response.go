@@ -1,8 +1,9 @@
 package api
 
 import (
-	"encoding/json"
 	"net/http"
+
+	"github.com/iwanlaudin/go-microservice/pkg/common/helpers"
 )
 
 type AppError struct {
@@ -18,19 +19,16 @@ type ErrorResponse struct {
 }
 
 func (e *AppError) SendResponse(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(e.Code)
 	response := ErrorResponse{
 		Status:  http.StatusText(e.Code),
 		Code:    e.Code,
 		Message: e.Message,
 	}
-	json.NewEncoder(w).Encode(response)
+
+	helpers.WriteToResponseBody(w, e.Code, response)
 }
 
 func SendResponse(w http.ResponseWriter, code int, data interface{}, message string) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
 	response := struct {
 		Status  string      `json:"status"`
 		Code    int         `json:"code"`
@@ -42,7 +40,8 @@ func SendResponse(w http.ResponseWriter, code int, data interface{}, message str
 		Message: message,
 		Data:    data,
 	}
-	json.NewEncoder(w).Encode(response)
+
+	helpers.WriteToResponseBody(w, code, response)
 }
 
 func NewAppError(err error, message string, code int) *AppError {
