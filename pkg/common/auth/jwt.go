@@ -9,19 +9,29 @@ import (
 )
 
 func GenerateToken(user *User) (string, error) {
+	if user.ID == "" || user.Username == "" || user.Role == "" {
+		return "", fmt.Errorf("invalid user data")
+	}
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id":  user.ID,
 		"username": user.Username,
 		"role":     user.Role,
 		"exp":      time.Now().Add(time.Hour * 24).Unix(),
+		"iat":      time.Now().Unix(),
 	})
 
-	jwtKey, err := config.GetSecretKey()
+	secretKey, err := config.GetSecretKey()
 	if err != nil {
 		return "", fmt.Errorf("failed to get secret key: %w", err)
 	}
 
-	return token.SignedString(jwtKey)
+	signedToken, err := token.SignedString(secretKey)
+	if err != nil {
+		return "", fmt.Errorf("failed to sign token: %w", err)
+	}
+
+	return signedToken, nil
 }
 
 func ValidateToken(tokenString string) (*User, error) {
@@ -61,8 +71,9 @@ func ValidateToken(tokenString string) (*User, error) {
 		if !ok {
 			return nil, fmt.Errorf("invalid expiration claim")
 		}
+
 		if time.Now().Unix() > int64(exp) {
-			return nil, fmt.Errorf("ioken has expired")
+			return nil, fmt.Errorf("token has expired")
 		}
 
 		user := &User{

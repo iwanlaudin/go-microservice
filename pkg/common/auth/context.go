@@ -8,6 +8,12 @@ type contextKey string
 
 const userContextKey contextKey = "user"
 
+type User struct {
+	ID       string
+	Username string
+	Role     string
+}
+
 // ContextWithUser menambahkan user ke dalam context
 func ContextWithUser(ctx context.Context, user *User) context.Context {
 	return context.WithValue(ctx, userContextKey, user)

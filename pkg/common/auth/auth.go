@@ -1,28 +1,32 @@
 package auth
 
 import (
-	"golang.org/x/crypto/bcrypt"
+	"crypto/rand"
+	"crypto/sha512"
+	"encoding/base64"
 )
 
-type User struct {
-	ID       string
-	Username string
-	Role     string
+func GeneratePasswordHash(salt string, password string) string {
+	combined := salt + password
+
+	hash := sha512.Sum512([]byte(combined))
+
+	return base64.StdEncoding.EncodeToString(hash[:])
 }
 
-func Authenticate(username, password string) (*User, error) {
-	if username == "admin" && checkPasswordHash(password, "$2a$10$...") {
-		return &User{ID: "1", Username: "admin", Role: "admin"}, nil
+func VerifyPasswordHash(passwordhash string, password string, salt string) bool {
+	hash := GeneratePasswordHash(salt, password)
+
+	return hash == passwordhash
+}
+
+func GenerateSaltHash(size int) (string, error) {
+	salt := make([]byte, size)
+
+	_, err := rand.Read(salt)
+	if err != nil {
+		return "", err
 	}
-	return nil, ErrInvalidCredentials
-}
 
-func checkPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
-}
-
-func GeneratePasswordHash(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	return string(bytes), err
+	return base64.StdEncoding.EncodeToString(salt), nil
 }
