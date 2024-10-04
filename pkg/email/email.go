@@ -21,9 +21,13 @@ type EmailSender struct {
 }
 
 func NewEmailSender(cfg *config.Config) (*EmailSender, error) {
+	if cfg.SmtpHost == "" || cfg.SmtpUsername == "" || cfg.SmtpPassword == "" {
+		return nil, fmt.Errorf("invalid configuration smtp")
+	}
+	
 	port, err := strconv.Atoi(cfg.SmtpPort)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid port")
 	}
 
 	return &EmailSender{config: SMTPConfig{
