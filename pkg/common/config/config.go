@@ -25,6 +25,10 @@ type Config struct {
 	SecretKey          string
 	RabbitMQURL        string
 	RedisURL           string
+	SmtpHost           string
+	SmtpPort           string
+	SmtpUsername       string
+	SmtpPassword       string
 }
 
 func Load() *Config {
@@ -45,6 +49,10 @@ func Load() *Config {
 		SecretKey:          getEnv("SECRET_KEY", "x-secret-key"),
 		RabbitMQURL:        getEnv("RABBIT_MQ_URL", "amqp://guest:guest@localhost:5672/"),
 		RedisURL:           getEnv("REDIS_URL", "redis://:<password>@localhost:6379/0"),
+		SmtpHost:           getEnv("SMTP_HOST", ""),
+		SmtpPort:           getEnv("SMTP_PORT", ""),
+		SmtpUsername:       getEnv("SMTP_USERNAME", ""),
+		SmtpPassword:       getEnv("SMTP_PASSWORD", ""),
 	}
 
 	secretKey = []byte(config.SecretKey)

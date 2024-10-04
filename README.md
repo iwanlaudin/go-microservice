@@ -26,6 +26,8 @@ myproject/
 │   │   ├── database/
 │   │   └── auth/
 │   ├── rabbitmq/                 # Utilitas RabbitMQ
+│   └── redis/                    # Utilitas Redis
+│   └── email/                    # Utilitas SMTP
 │   └── ...                       # Paket shared lainnya
 ├── scripts/
 │   ├── build.sh                  # Script untuk build semua services
@@ -50,6 +52,8 @@ myproject/
 - **Queue Management**: Integration with RabbitMQ for asynchronous processing.
 - **Configuration Management**: Easily customizable via environment variables.
 - **Redis Caching**: Caches frequently accessed data using Redis to improve response times and reduce database load.
+- **Email Notifications**: Sends email notifications to users for various events, such as account creation, password resets, and alerts.
+- **SMTP Configuration**: Easily configurable SMTP settings to connect to your email server.
 - **Graceful Shutdown**: Application can gracefully handle shutdown signals to ensure ongoing processes complete before termination.
 - **Logging**: Structured logging with Zap for easier debugging and tracing.
 - **Scalability**: Designed to accommodate user growth.
