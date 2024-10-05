@@ -6,50 +6,52 @@ import (
 	"github.com/iwanlaudin/go-microservice/pkg/common/helpers"
 )
 
-type AppError struct {
-	Status  string      `json:"-"`
+type ApiResponse struct {
 	Message string      `json:"message"`
-	Code    int         `json:"-"`
+	Code    int         `json:"code"`
 	Errors  interface{} `json:"errors"`
 }
 
-func (e *AppError) SendResponse(write http.ResponseWriter) {
+func (r *ApiResponse) Err(write http.ResponseWriter) {
 	response := struct {
-		Status  string      `json:"status"`
-		Code    int         `json:"code"`
-		Message string      `json:"message"`
-		Errors  interface{} `json:"data,omitempty"`
+		Status  string `json:"status"`
+		Code    int    `json:"code"`
+		Message string `json:"message"`
 	}{
-		Status:  http.StatusText(e.Code),
-		Code:    e.Code,
-		Message: e.Message,
-		Errors:  e.Errors,
+		Status:  http.StatusText(r.Code),
+		Code:    r.Code,
+		Message: r.Message,
 	}
-
-	helpers.WriteToResponseBody(write, e.Code, response)
+	helpers.WriteToResponseBody(write, response.Code, response)
 }
 
-func SendResponse(write http.ResponseWriter, code int, items interface{}, message string) {
+func (r *ApiResponse) Ok(write http.ResponseWriter, items interface{}) {
 	response := struct {
 		Status  string      `json:"status"`
 		Code    int         `json:"code"`
 		Message string      `json:"message"`
-		Items   interface{} `json:"data,omitempty"`
+		Items   interface{} `json:"items,omitempty"`
 	}{
-		Status:  http.StatusText(code),
-		Code:    code,
-		Message: message,
+		Status:  http.StatusText(r.Code),
+		Code:    r.Code,
+		Message: r.Message,
 		Items:   items,
 	}
-
-	helpers.WriteToResponseBody(write, code, response)
+	helpers.WriteToResponseBody(write, response.Code, response)
 }
 
-func NewAppError(message string, code int) *AppError {
-	return &AppError{
-		Status:  http.StatusText(code),
+func NewAppResponse(message string, code int) *ApiResponse {
+	return &ApiResponse{
 		Message: message,
 		Code:    code,
+	}
+}
+
+func NewValidationError(errors interface{}) *ApiResponse {
+	return &ApiResponse{
+		Message: "Invalid parameter",
+		Code:    http.StatusBadRequest,
+		Errors:  errors,
 	}
 }
 

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"runtime/debug"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -13,9 +14,71 @@ import (
 	"golang.org/x/time/rate"
 )
 
-type contextKey string
-
 const apiVersionKey contextKey = "api.version"
+
+func ErrorLogger(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				// Log the error and stack trace
+				log.Printf("Panic: %v\nStack trace: %s", err, debug.Stack())
+
+				NewAppResponse("Internal Server Error", http.StatusInternalServerError).Err(w)
+			}
+		}()
+		next.ServeHTTP(w, r)
+	})
+}
+
+func TimeoutMiddleware(timeout time.Duration) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx, cancel := context.WithTimeout(r.Context(), timeout)
+			defer cancel()
+
+			r = r.WithContext(ctx)
+
+			done := make(chan bool)
+			go func() {
+				next.ServeHTTP(w, r)
+				done <- true
+			}()
+
+			select {
+			case <-done:
+				return
+			case <-ctx.Done():
+				NewAppResponse("Gateway Timeout", http.StatusGatewayTimeout).Err(w)
+				return
+			}
+		})
+	}
+}
+
+func AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
+			NewAppResponse("Missing auth token", http.StatusUnauthorized).Err(w)
+			return
+		}
+
+		bearerToken := strings.Fields(authHeader)
+		if len(bearerToken) < 2 || bearerToken[0] != "Bearer" {
+			NewAppResponse("Invalid token format", http.StatusUnauthorized).Err(w)
+			return
+		}
+
+		user, err := ValidateToken(bearerToken[1])
+		if err != nil {
+			NewAppResponse(err.Error(), http.StatusUnauthorized).Err(w)
+			return
+		}
+
+		ctx := ContextWithUser(r.Context(), user)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
 
 func ApiVersionCtx(version string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -26,26 +89,12 @@ func ApiVersionCtx(version string) func(next http.Handler) http.Handler {
 	}
 }
 
-func ErrorLogger(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer func() {
-			if err := recover(); err != nil {
-				// Log the error and stack trace
-				log.Printf("Panic: %v\nStack trace: %s", err, debug.Stack())
-
-				NewAppError("Internal Server Error", http.StatusInternalServerError).SendResponse(w)
-			}
-		}()
-		next.ServeHTTP(w, r)
-	})
-}
-
 func RateLimiter(rps int, burst int) func(http.Handler) http.Handler {
 	limiter := rate.NewLimiter(rate.Limit(rps), burst)
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if !limiter.Allow() {
-				NewAppError("Too Many Requests", http.StatusTooManyRequests).SendResponse(w)
+				NewAppResponse("Too Many Requests", http.StatusTooManyRequests).Err(w)
 				return
 			}
 			next.ServeHTTP(w, r)
@@ -77,7 +126,7 @@ func RateLimiterPerIP() func(http.Handler) http.Handler {
 			ip := r.RemoteAddr
 			limiter := getIPLimiter(ip)
 			if !limiter.Allow() {
-				NewAppError("Too Many Requests", http.StatusTooManyRequests).SendResponse(w)
+				NewAppResponse("Too Many Requests", http.StatusTooManyRequests).Err(w)
 				return
 			}
 			next.ServeHTTP(w, r)
@@ -105,7 +154,7 @@ func RedisRateLimiter(redisClient *redis.RedisClient, limit int, window time.Dur
 			if count > int64(limit) {
 				w.Header().Set("X-RateLimit-Limit", strconv.Itoa(limit))
 				w.Header().Set("X-RateLimit-Remaining", "0")
-				NewAppError("Rate limit exceeded", http.StatusTooManyRequests).SendResponse(w)
+				NewAppResponse("Rate limit exceeded", http.StatusTooManyRequests).Err(w)
 				return
 			}
 
@@ -113,31 +162,6 @@ func RedisRateLimiter(redisClient *redis.RedisClient, limit int, window time.Dur
 			w.Header().Set("X-RateLimit-Remaining", strconv.Itoa(limit-int(count)))
 
 			next.ServeHTTP(w, r)
-		})
-	}
-}
-
-func TimeoutMiddleware(timeout time.Duration) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx, cancel := context.WithTimeout(r.Context(), timeout)
-			defer cancel()
-
-			r = r.WithContext(ctx)
-
-			done := make(chan bool)
-			go func() {
-				next.ServeHTTP(w, r)
-				done <- true
-			}()
-
-			select {
-			case <-done:
-				return
-			case <-ctx.Done():
-				NewAppError("Gateway Timeout", http.StatusGatewayTimeout).SendResponse(w)
-				return
-			}
 		})
 	}
 }

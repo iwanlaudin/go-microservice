@@ -5,7 +5,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/iwanlaudin/go-microservice/pkg/common/api"
-	"github.com/iwanlaudin/go-microservice/pkg/common/auth"
 )
 
 func SetupRoutes(r chi.Router) {
@@ -20,8 +19,19 @@ func SetupRoutes(r chi.Router) {
 			w.Write([]byte("This is the sign-in endpoint, no authentication required!"))
 		})
 
-		r.With(auth.AuthMiddleware).Get("/me", func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte("hello world!"))
+		r.Get("/sign-up", func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("This is the sign-in endpoint, no authentication required!"))
+		})
+
+		r.Get("/me", func(w http.ResponseWriter, r *http.Request) {
+			user := map[string]interface{}{
+				"id":         1,
+				"first_name": "Iwan",
+				"last_name":  "La Udin",
+				"email":      "iwanlaudin@gmail.com",
+			}
+
+			api.NewAppResponse("successfully", http.StatusOK).Ok(w, user)
 		})
 	})
 }
