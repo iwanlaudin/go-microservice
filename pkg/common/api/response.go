@@ -72,9 +72,23 @@ func validationErrors(err error) []map[string]string {
 			validationErrors = append(validationErrors, map[string]string{
 				"field":   fieldError.Field(),
 				"tag":     fieldError.Tag(),
-				"message": fieldError.Error(),
+				"message": validationErrorMessage(fieldError),
 			})
 		}
 	}
 	return validationErrors
+}
+
+func validationErrorMessage(vErr validator.FieldError) string {
+	switch vErr.Tag() {
+	case "required":
+		return "This field is required"
+	case "email":
+		return "Invalid email format"
+	case "min":
+		return "Value is too short"
+	// Add more validation tag messages as needed
+	default:
+		return "Invalid value"
+	}
 }

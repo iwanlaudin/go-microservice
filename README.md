@@ -16,6 +16,9 @@ myproject/
 │   │   │   ├── models/           # Model data Order
 │   │   │   ├── repository/       # Lapisan akses data Order
 │   │   │   └── service/          # Logika bisnis Order
+│   │   │   └── dto/              # Folder baru untuk request dan response
+│   │   │       ├── request/      # Definisi struktur request
+│   │   │       └── response/     # Definisi struktur response
 │   │   ├── config/               # Konfigurasi Order service
 │   │   ├── migrations/           # Database migrations Order service
 │   │   └── Dockerfile
@@ -36,7 +39,6 @@ myproject/
 ├── deployments/
 │   ├── docker-compose.yml        # Untuk menjalankan semua services secara lokal
 │   └── kubernetes/               # Konfigurasi Kubernetes jika diperlukan
-├── migrations/                   # Database migrations
 ├── test/
 │   └── integration/              # Tes integrasi antar services
 ├── go.mod

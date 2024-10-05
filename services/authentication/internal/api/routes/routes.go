@@ -1,37 +1,39 @@
 package routes
 
 import (
-	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-playground/validator/v10"
 	"github.com/iwanlaudin/go-microservice/pkg/common/api"
+	"github.com/iwanlaudin/go-microservice/services/authentication/internal/api/handlers"
+	"github.com/iwanlaudin/go-microservice/services/authentication/internal/repository"
+	"github.com/iwanlaudin/go-microservice/services/authentication/internal/service"
+	"github.com/jmoiron/sqlx"
 )
 
-func SetupRoutes(r chi.Router) {
+func NewRouter(db *sqlx.DB, validate *validator.Validate) *chi.Mux {
+	// Initialize Router
+	r := chi.NewRouter()
+
+	// Base Middleware
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+
+	// Cutome Middleware
+	r.Use(api.TimeoutMiddleware(15 * time.Second))
 	r.Use(api.ErrorLogger)
 
-	r.Get("/panic", func(w http.ResponseWriter, r *http.Request) {
-		panic("panic")
-	})
+	// Initialize Repository, Service and Handler
+	authRepository := repository.NewAuthRepository()
+	authService := service.NewAuthService(authRepository, db)
+	authHandler := handlers.NewAuthHandler(authService, validate)
 
-	r.Route("/auth", func(r chi.Router) {
-		r.Get("/sign-in", func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte("This is the sign-in endpoint, no authentication required!"))
-		})
+	// Apps router
+	r.Mount("/auth", AuthRouter(authHandler))
 
-		r.Get("/sign-up", func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte("This is the sign-in endpoint, no authentication required!"))
-		})
-
-		r.Get("/me", func(w http.ResponseWriter, r *http.Request) {
-			user := map[string]interface{}{
-				"id":         1,
-				"first_name": "Iwan",
-				"last_name":  "La Udin",
-				"email":      "iwanlaudin@gmail.com",
-			}
-
-			api.NewAppResponse("successfully", http.StatusOK).Ok(w, user)
-		})
-	})
+	return r
 }

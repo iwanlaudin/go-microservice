@@ -45,7 +45,7 @@ func GenerateToken(userClaim map[string]interface{}) (string, error) {
 	return signedToken, nil
 }
 
-func validateClaims(token *jwt.Token) (map[string]interface{}, error) {
+func validateClaims(token *jwt.Token) (*UserContext, error) {
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		id, ok := claims["id"].(string)
 		if !ok {
@@ -71,19 +71,19 @@ func validateClaims(token *jwt.Token) (map[string]interface{}, error) {
 			return nil, ErrExpiredToken
 		}
 
-		userContext := map[string]interface{}{
-			"id":       id,
-			"username": username,
-			"email":    email,
+		userContext := UserContext{
+			ID:       id,
+			Username: username,
+			Email:    email,
 		}
 
-		return userContext, nil
+		return &userContext, nil
 	}
 
 	return nil, ErrInvalidToken
 }
 
-func ValidateToken(tokenString string) (map[string]interface{}, error) {
+func ValidateToken(tokenString string) (*UserContext, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, helpers.CustomError("unexpected signing method: %v", token.Header["alg"])

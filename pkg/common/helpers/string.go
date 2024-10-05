@@ -4,10 +4,11 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
-	"fmt"
 	"net"
 	"net/mail"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 // HashString generates a base64 encoded SHA-256 hash of a string.
@@ -39,15 +40,23 @@ func GenerateRandomString(size int) (string, error) {
 func ValidateMail(email string) error {
 	_, err := mail.ParseAddress(email)
 	if err != nil {
-		return fmt.Errorf("invalid email")
+		return CustomError("Invalid email")
 	}
 
 	parts := strings.Split(email, "@")
 
 	_, err = net.LookupMX(parts[1])
 	if err != nil {
-		return fmt.Errorf("domain not found")
+		return CustomError("Domain not found")
 	}
 
 	return nil
+}
+
+func ConvertUserIDToUUID(userId string) (uuid.UUID, error) {
+	id, err := uuid.Parse(userId)
+	if err != nil {
+		return uuid.Nil, CustomError("Failed to convert userId to UUID")
+	}
+	return id, nil
 }

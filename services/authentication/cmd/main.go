@@ -8,9 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/iwanlaudin/go-microservice/pkg/common/api"
+	"github.com/go-playground/validator/v10"
 	"github.com/iwanlaudin/go-microservice/pkg/common/config"
 	"github.com/iwanlaudin/go-microservice/pkg/common/database"
 	"github.com/iwanlaudin/go-microservice/pkg/common/logger"
@@ -32,11 +30,6 @@ func main() {
 	}
 	defer db.Close()
 
-	// Run Database Migrations
-	if err := database.RunMigrations(db); err != nil {
-		log.Fatal("Failed to run database migrations", logger.Error(err))
-	}
-
 	// Initialize redis client
 	redisClient, err := redis.NewRedisClient(cfg.RedisURL)
 	if err != nil {
@@ -44,26 +37,16 @@ func main() {
 	}
 	defer redisClient.Client.Close()
 
+	// Initialize validator
+	validate := validator.New()
+
 	// Initialize Router
-	r := chi.NewRouter()
-
-	// Base Middleware
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-
-	// Cutome Middleware
-	// Set global timeout to 15 seconds
-	r.Use(api.TimeoutMiddleware(15 * time.Second))
-
-	// Route
-	routes.SetupRoutes(r)
+	handler := routes.NewRouter(db, validate)
 
 	// Configuration Server
 	srv := &http.Server{
 		Addr:         cfg.AuthServicePort,
-		Handler:      r,
+		Handler:      handler,
 		ReadTimeout:  20 * time.Second,
 		WriteTimeout: 20 * time.Second,
 		IdleTimeout:  60 * time.Second,

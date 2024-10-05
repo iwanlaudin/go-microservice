@@ -23,7 +23,7 @@ func ErrorLogger(next http.Handler) http.Handler {
 				// Log the error and stack trace
 				log.Printf("Panic: %v\nStack trace: %s", err, debug.Stack())
 
-				NewAppResponse("Internal Server Error", http.StatusInternalServerError).Err(w)
+				NewAppResponse("Internal server error", http.StatusInternalServerError).Err(w)
 			}
 		}()
 		next.ServeHTTP(w, r)
@@ -48,7 +48,7 @@ func TimeoutMiddleware(timeout time.Duration) func(next http.Handler) http.Handl
 			case <-done:
 				return
 			case <-ctx.Done():
-				NewAppResponse("Gateway Timeout", http.StatusGatewayTimeout).Err(w)
+				NewAppResponse("Gateway timeout", http.StatusGatewayTimeout).Err(w)
 				return
 			}
 		})
@@ -69,13 +69,18 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		user, err := ValidateToken(bearerToken[1])
+		userContext, err := ValidateToken(bearerToken[1])
 		if err != nil {
 			NewAppResponse(err.Error(), http.StatusUnauthorized).Err(w)
 			return
 		}
 
-		ctx := ContextWithUser(r.Context(), user)
+		if userContext == nil {
+			NewAppResponse("Context not found", http.StatusUnauthorized).Err(w)
+			return
+		}
+
+		ctx := ContextWithUser(r.Context(), userContext)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -94,7 +99,7 @@ func RateLimiter(rps int, burst int) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if !limiter.Allow() {
-				NewAppResponse("Too Many Requests", http.StatusTooManyRequests).Err(w)
+				NewAppResponse("To many requests", http.StatusTooManyRequests).Err(w)
 				return
 			}
 			next.ServeHTTP(w, r)
@@ -126,7 +131,7 @@ func RateLimiterPerIP() func(http.Handler) http.Handler {
 			ip := r.RemoteAddr
 			limiter := getIPLimiter(ip)
 			if !limiter.Allow() {
-				NewAppResponse("Too Many Requests", http.StatusTooManyRequests).Err(w)
+				NewAppResponse("To many requests", http.StatusTooManyRequests).Err(w)
 				return
 			}
 			next.ServeHTTP(w, r)
