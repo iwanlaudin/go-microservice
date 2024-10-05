@@ -8,22 +8,14 @@ type contextKey string
 
 const userContextKey contextKey = "user"
 
-type User struct {
-	ID       string
-	Username string
-	Role     string
+func ContextWithUser(ctx context.Context, userContext map[string]interface{}) context.Context {
+	return context.WithValue(ctx, userContextKey, userContext)
 }
 
-// ContextWithUser menambahkan user ke dalam context
-func ContextWithUser(ctx context.Context, user *User) context.Context {
-	return context.WithValue(ctx, userContextKey, user)
-}
-
-// UserFromContext mengambil user dari context
-func UserFromContext(ctx context.Context) *User {
-	user, ok := ctx.Value(userContextKey).(*User)
+func UserFromContext(ctx context.Context) map[string]interface{} {
+	userContext, ok := ctx.Value(userContextKey).(map[string]interface{})
 	if !ok {
 		return nil
 	}
-	return user
+	return userContext
 }

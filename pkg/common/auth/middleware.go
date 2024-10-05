@@ -11,19 +11,19 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
-			api.NewAppError(nil, "Missing auth token", http.StatusUnauthorized).SendResponse(w)
+			api.NewAppError("Missing auth token", http.StatusUnauthorized).SendResponse(w)
 			return
 		}
 
 		bearerToken := strings.Fields(authHeader)
 		if len(bearerToken) < 2 || bearerToken[0] != "Bearer" {
-			api.NewAppError(nil, "Invalid token format", http.StatusUnauthorized).SendResponse(w)
+			api.NewAppError("Invalid token format", http.StatusUnauthorized).SendResponse(w)
 			return
 		}
 
 		user, err := ValidateToken(bearerToken[1])
 		if err != nil {
-			api.NewAppError(nil, err.Error(), http.StatusUnauthorized).SendResponse(w)
+			api.NewAppError(err.Error(), http.StatusUnauthorized).SendResponse(w)
 			return
 		}
 

@@ -2,7 +2,6 @@ package auth
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -20,33 +19,71 @@ var (
 	ErrInsufficientPermission = errors.New("insufficient permission")
 )
 
-func GenerateToken(user *User) (string, error) {
-	if user.ID == "" || user.Username == "" || user.Role == "" {
-		return "", fmt.Errorf("invalid user data")
+func GenerateToken(userClaim map[string]interface{}) (string, error) {
+	if userClaim["id"] == "" || userClaim["username"] == "" || userClaim["email"] == "" {
+		return "", helpers.CustomError("invalid user data")
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id":  user.ID,
-		"username": user.Username,
-		"role":     user.Role,
+		"id":       userClaim["id"],
+		"username": userClaim["username"],
+		"email":    userClaim["email"],
 		"exp":      time.Now().Add(time.Hour * 24).Unix(),
 		"iat":      time.Now().Unix(),
 	})
 
 	secretKey, err := config.GetSecretKey()
 	if err != nil {
-		return "", fmt.Errorf("failed to get secret key: %w", err)
+		return "", helpers.CustomError("failed to get secret key: %w", err)
 	}
 
 	signedToken, err := token.SignedString(secretKey)
 	if err != nil {
-		return "", fmt.Errorf("failed to sign token: %w", err)
+		return "", helpers.CustomError("failed to sign token: %w", err)
 	}
 
 	return signedToken, nil
 }
 
-func ValidateToken(tokenString string) (*User, error) {
+func validateClaims(token *jwt.Token) (map[string]interface{}, error) {
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		id, ok := claims["id"].(string)
+		if !ok {
+			return nil, ErrInvalidIdClaim
+		}
+
+		username, ok := claims["username"].(string)
+		if !ok {
+			return nil, ErrInvalidUsernameClaim
+		}
+
+		email, ok := claims["email"].(string)
+		if !ok {
+			return nil, ErrInvalidRoleClaim
+		}
+
+		exp, ok := claims["exp"].(float64)
+		if !ok {
+			return nil, ErrInvalidExpiredClaim
+		}
+
+		if time.Now().Unix() > int64(exp) {
+			return nil, ErrExpiredToken
+		}
+
+		userContext := map[string]interface{}{
+			"id":       id,
+			"username": username,
+			"email":    email,
+		}
+
+		return userContext, nil
+	}
+
+	return nil, ErrInvalidToken
+}
+
+func ValidateToken(tokenString string) (map[string]interface{}, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, helpers.CustomError("unexpected signing method: %v", token.Header["alg"])
@@ -63,39 +100,9 @@ func ValidateToken(tokenString string) (*User, error) {
 		return nil, err
 	}
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		userId, ok := claims["user_id"].(string)
-		if !ok {
-			return nil, ErrInvalidIdClaim
-		}
-
-		username, ok := claims["username"].(string)
-		if !ok {
-			return nil, ErrInvalidUsernameClaim
-		}
-
-		role, ok := claims["role"].(string)
-		if !ok {
-			return nil, ErrInvalidRoleClaim
-		}
-
-		exp, ok := claims["exp"].(float64)
-		if !ok {
-			return nil, ErrInvalidExpiredClaim
-		}
-
-		if time.Now().Unix() > int64(exp) {
-			return nil, ErrExpiredToken
-		}
-
-		user := &User{
-			ID:       userId,
-			Username: username,
-			Role:     role,
-		}
-
+	if user, err := validateClaims(token); err != nil {
+		return nil, err
+	} else {
 		return user, nil
 	}
-
-	return nil, ErrInvalidToken
 }

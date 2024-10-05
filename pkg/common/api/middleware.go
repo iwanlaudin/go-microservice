@@ -33,7 +33,7 @@ func ErrorLogger(next http.Handler) http.Handler {
 				// Log the error and stack trace
 				log.Printf("Panic: %v\nStack trace: %s", err, debug.Stack())
 
-				NewAppError(nil, "Internal Server Error", http.StatusInternalServerError).SendResponse(w)
+				NewAppError("Internal Server Error", http.StatusInternalServerError).SendResponse(w)
 			}
 		}()
 		next.ServeHTTP(w, r)
@@ -45,7 +45,7 @@ func RateLimiter(rps int, burst int) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if !limiter.Allow() {
-				NewAppError(nil, "Too Many Requests", http.StatusTooManyRequests).SendResponse(w)
+				NewAppError("Too Many Requests", http.StatusTooManyRequests).SendResponse(w)
 				return
 			}
 			next.ServeHTTP(w, r)
@@ -53,7 +53,6 @@ func RateLimiter(rps int, burst int) func(http.Handler) http.Handler {
 	}
 }
 
-// Jika Anda ingin rate limit per IP
 var (
 	limiterMap = make(map[string]*rate.Limiter)
 	mu         sync.Mutex
@@ -78,7 +77,7 @@ func RateLimiterPerIP() func(http.Handler) http.Handler {
 			ip := r.RemoteAddr
 			limiter := getIPLimiter(ip)
 			if !limiter.Allow() {
-				NewAppError(nil, "Too Many Requests", http.StatusTooManyRequests).SendResponse(w)
+				NewAppError("Too Many Requests", http.StatusTooManyRequests).SendResponse(w)
 				return
 			}
 			next.ServeHTTP(w, r)
@@ -106,7 +105,7 @@ func RedisRateLimiter(redisClient *redis.RedisClient, limit int, window time.Dur
 			if count > int64(limit) {
 				w.Header().Set("X-RateLimit-Limit", strconv.Itoa(limit))
 				w.Header().Set("X-RateLimit-Remaining", "0")
-				NewAppError(nil, "Rate limit exceeded", http.StatusTooManyRequests).SendResponse(w)
+				NewAppError("Rate limit exceeded", http.StatusTooManyRequests).SendResponse(w)
 				return
 			}
 
@@ -136,7 +135,7 @@ func TimeoutMiddleware(timeout time.Duration) func(next http.Handler) http.Handl
 			case <-done:
 				return
 			case <-ctx.Done():
-				NewAppError(nil, "Gateway Timeout", http.StatusGatewayTimeout).SendResponse(w)
+				NewAppError("Gateway Timeout", http.StatusGatewayTimeout).SendResponse(w)
 				return
 			}
 		})

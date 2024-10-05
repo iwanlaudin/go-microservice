@@ -17,6 +17,7 @@ myproject/
 │   │   │   ├── repository/       # Lapisan akses data Order
 │   │   │   └── service/          # Logika bisnis Order
 │   │   ├── config/               # Konfigurasi Order service
+│   │   ├── migrations/           # Database migrations Order service
 │   │   └── Dockerfile
 │   └── ...                       # Folder untuk service lainnya
 ├── pkg/

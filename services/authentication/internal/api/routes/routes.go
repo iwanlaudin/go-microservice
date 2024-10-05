@@ -11,6 +11,10 @@ import (
 func SetupRoutes(r chi.Router) {
 	r.Use(api.ErrorLogger)
 
+	r.Get("/panic", func(w http.ResponseWriter, r *http.Request) {
+		panic("panic")
+	})
+
 	r.Get("/auth/sign-in", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("This is the sign-in endpoint, no authentication required!"))
 	})

@@ -7,47 +7,69 @@ import (
 )
 
 type AppError struct {
-	Error   error  `json:"-"`
-	Message string `json:"message"`
-	Code    int    `json:"-"`
+	Status  string      `json:"-"`
+	Message string      `json:"message"`
+	Code    int         `json:"-"`
+	Errors  interface{} `json:"errors"`
 }
 
-type ErrorResponse struct {
-	Status  string `json:"status"`
-	Message string `json:"message"`
-	Code    int    `json:"code"`
-}
-
-func (e *AppError) SendResponse(w http.ResponseWriter) {
-	response := ErrorResponse{
-		Status:  http.StatusText(e.Code),
-		Code:    e.Code,
-		Message: e.Message,
-	}
-
-	helpers.WriteToResponseBody(w, e.Code, response)
-}
-
-func SendResponse(w http.ResponseWriter, code int, data interface{}, message string) {
+func (e *AppError) SendResponse(write http.ResponseWriter) {
 	response := struct {
 		Status  string      `json:"status"`
 		Code    int         `json:"code"`
 		Message string      `json:"message"`
-		Data    interface{} `json:"data,omitempty"`
+		Errors  interface{} `json:"data,omitempty"`
+	}{
+		Status:  http.StatusText(e.Code),
+		Code:    e.Code,
+		Message: e.Message,
+		Errors:  e.Errors,
+	}
+
+	helpers.WriteToResponseBody(write, e.Code, response)
+}
+
+func SendResponse(write http.ResponseWriter, code int, items interface{}, message string) {
+	response := struct {
+		Status  string      `json:"status"`
+		Code    int         `json:"code"`
+		Message string      `json:"message"`
+		Items   interface{} `json:"data,omitempty"`
 	}{
 		Status:  http.StatusText(code),
 		Code:    code,
 		Message: message,
-		Data:    data,
+		Items:   items,
 	}
 
-	helpers.WriteToResponseBody(w, code, response)
+	helpers.WriteToResponseBody(write, code, response)
 }
 
-func NewAppError(err error, message string, code int) *AppError {
+func NewAppError(message string, code int) *AppError {
 	return &AppError{
-		Error:   err,
+		Status:  http.StatusText(code),
 		Message: message,
 		Code:    code,
 	}
 }
+
+// func NewAppErrorWithValidation(err error, message string, code int) *AppError {
+// 	var validationErrors []map[string]string
+
+// 	if errs, ok := err.(validator.ValidationErrors); ok {
+// 		for _, fieldError := range errs {
+// 			validationErrors = append(validationErrors, map[string]string{
+// 				"field":   fieldError.Field(),
+// 				"tag":     fieldError.Tag(),
+// 				"message": fieldError.Error(),
+// 			})
+// 		}
+// 	}
+
+// 	return &AppError{
+// 		Status:   http.StatusText(code),
+// 		Message: message,
+// 		Code:    code,
+// 		Errors:  validationErrors,
+// 	}
+// }
