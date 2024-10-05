@@ -8,9 +8,8 @@ import (
 )
 
 type ApiResponse struct {
-	Message string      `json:"message"`
-	Code    int         `json:"code"`
-	Errors  interface{} `json:"errors"`
+	Message string
+	Code    int
 }
 
 func NewAppResponse(message string, code int) *ApiResponse {
