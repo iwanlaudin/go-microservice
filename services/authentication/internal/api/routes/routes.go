@@ -15,14 +15,12 @@ func SetupRoutes(r chi.Router) {
 		panic("panic")
 	})
 
-	r.Get("/auth/sign-in", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("This is the sign-in endpoint, no authentication required!"))
-	})
-
 	r.Route("/auth", func(r chi.Router) {
-		r.Use(auth.AuthMiddleware)
+		r.Get("/sign-in", func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("This is the sign-in endpoint, no authentication required!"))
+		})
 
-		r.Get("/me", func(w http.ResponseWriter, r *http.Request) {
+		r.With(auth.AuthMiddleware).Get("/me", func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("hello world!"))
 		})
 	})
