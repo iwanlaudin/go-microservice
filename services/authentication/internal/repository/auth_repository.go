@@ -15,4 +15,5 @@ type AuthRepository interface {
 	AddUser(ctx context.Context, db *sqlx.DB, user *models.User) error
 	AddUserToken(ctx context.Context, db *sqlx.DB, userToken *models.UserToken) error
 	FindUserTokenByRefreshToken(ctx context.Context, db *sqlx.DB, refreshToken string) (*models.UserToken, error)
+	UpdateUserToken(ctx context.Context, db *sqlx.DB, userToken *models.UserToken) error
 }

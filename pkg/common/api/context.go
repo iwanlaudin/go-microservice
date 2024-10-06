@@ -21,7 +21,7 @@ func ContextWithUser(ctx context.Context, userContext *UserContext) context.Cont
 func UserFromContext(ctx context.Context) *UserContext {
 	userContext, ok := ctx.Value(userContextKey).(*UserContext)
 	if !ok {
-		return nil
+		panic("Context value is nil")
 	}
 	return userContext
 }

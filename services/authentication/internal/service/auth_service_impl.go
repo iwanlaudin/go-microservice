@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -36,14 +35,19 @@ func (service *AuthServiceImpl) Create(ctx context.Context, request request.Crea
 	salt := helpers.HashString("N")
 	password := helpers.GeneratePasswordHash(salt, request.Password)
 
+	now := time.Now().UTC()
+	idStr := userId.String()
+
 	user := models.User{
 		ID:        userId,
 		FirstName: request.FirstName,
-		LastName:  request.LastName,
+		LastName:  &request.LastName,
 		Username:  request.Email,
 		Email:     request.Email,
 		Salt:      salt,
 		Password:  password,
+		CreatedAt: &now,
+		CreatedBy: &idStr,
 	}
 
 	err = service.AuthRepository.AddUser(ctx, service.DB, &user)
@@ -61,7 +65,7 @@ func (service *AuthServiceImpl) SignIn(ctx context.Context, request *request.Sig
 
 	user, err := service.AuthRepository.FindByUsername(ctx, service.DB, request.Username)
 	if err != nil {
-		return nil, helpers.CustomError(err.Error())
+		return nil, helpers.CustomError("Failed to find user by username")
 	}
 
 	if user == nil {
@@ -79,10 +83,14 @@ func (service *AuthServiceImpl) SignIn(ctx context.Context, request *request.Sig
 	}
 
 	token, err := api.GenerateToken(userClaim)
-	helpers.PanicIfError(err)
+	if err != nil {
+		return nil, helpers.CustomError("Failed to generate access token")
+	}
 
-	refreshToken := strings.ReplaceAll(uuid.NewString(), "-", "")
-	expiryAt := time.Now().UTC().Add(14 * 24 * time.Hour)
+	now := time.Now().UTC()
+
+	refreshToken := helpers.GenerateRefreshToken()
+	expiryAt := now.Add(14 * 24 * time.Hour)
 
 	userTokenResponse = response.UserTokenResponse{
 		UserId:       user.ID,
@@ -91,6 +99,7 @@ func (service *AuthServiceImpl) SignIn(ctx context.Context, request *request.Sig
 		RefreshToken: refreshToken,
 	}
 
+	idStr := user.ID.String()
 	userTokenId, err := uuid.NewV7()
 	helpers.PanicIfError(err)
 	userToken := models.UserToken{
@@ -98,64 +107,93 @@ func (service *AuthServiceImpl) SignIn(ctx context.Context, request *request.Sig
 		UserId:       user.ID,
 		RefreshToken: refreshToken,
 		ExpiryAt:     expiryAt,
+		CreatedAt:    &now,
+		CreatedBy:    &idStr,
 	}
 
 	err = service.AuthRepository.AddUserToken(ctx, service.DB, &userToken)
-	helpers.PanicIfError(err)
+	if err != nil {
+		return nil, helpers.CustomError("Failed to add user token")
+	}
 
 	return &userTokenResponse, nil
 }
 
 func (service *AuthServiceImpl) RefreshToken(ctx context.Context, request *request.RefreshTokenRequest) (*response.UserTokenResponse, error) {
 	var userTokenResponse response.UserTokenResponse
+	userContext := api.UserFromContext(ctx)
 
-	userToken, err := service.AuthRepository.FindUserTokenByRefreshToken(ctx, service.DB, request.RefreshToken)
+	err := helpers.WithTransaction(ctx, service.DB, func(tx *sqlx.Tx) error {
+		userToken, err := service.AuthRepository.FindUserTokenByRefreshToken(ctx, service.DB, request.RefreshToken)
+		if err != nil {
+			return helpers.CustomError("Failed to find user token")
+		}
+
+		if userToken == nil || userToken.IsUsed || userToken.ExpiryAt.Before(time.Now().UTC()) {
+			return helpers.CustomError("Invalid or expired refresh token")
+		}
+
+		now := time.Now().UTC()
+		userToken.UpdatedAt = &now
+		userToken.UpdatedBy = &userContext.ID
+
+		err = service.AuthRepository.UpdateUserToken(ctx, service.DB, userToken)
+		if err != nil {
+			return helpers.CustomError("Failed to update user token")
+		}
+
+		refreshToken := helpers.GenerateRefreshToken()
+		expiryAt := time.Now().UTC().Add(14 * 24 * time.Hour)
+		userTokenId, err := uuid.NewV7()
+		if err != nil {
+			return helpers.CustomError("Failed to generate token ID")
+		}
+
+		newUserToken := models.UserToken{
+			ID:           userTokenId,
+			UserId:       userToken.UserId,
+			ExpiryAt:     expiryAt,
+			RefreshToken: refreshToken,
+			CreatedBy:    &userContext.ID,
+			CreatedAt:    &now,
+		}
+
+		err = service.AuthRepository.AddUserToken(ctx, service.DB, &newUserToken)
+		if err != nil {
+			return helpers.CustomError("Failed to add new user token")
+		}
+
+		user, err := service.AuthRepository.FindById(ctx, service.DB, userToken.UserId)
+		if err != nil {
+			return helpers.CustomError("Failed to find user")
+		}
+		if user == nil {
+			return helpers.CustomError("User not found")
+		}
+
+		userClaim := map[string]interface{}{
+			"id":       user.ID,
+			"username": user.Username,
+			"email":    user.Email,
+		}
+
+		token, err := api.GenerateToken(userClaim)
+		if err != nil {
+			return helpers.CustomError("Failed to generate access token")
+		}
+
+		userTokenResponse = response.UserTokenResponse{
+			UserId:       user.ID,
+			Expiry:       float64(expiryAt.Unix()),
+			AccessToken:  token,
+			RefreshToken: refreshToken,
+		}
+
+		return nil
+	})
+
 	if err != nil {
-		return nil, helpers.CustomError(err.Error())
-	}
-
-	if userToken == nil || userToken.IsUsed || userToken.ExpiryAt.Before(time.Now().UTC()) {
-		return nil, helpers.CustomError("Invalid request")
-	}
-
-	refreshToken := strings.ReplaceAll(uuid.NewString(), "-", "")
-	expiryAt := time.Now().UTC().Add(14 * 24 * time.Hour)
-	userTokenId, err := uuid.NewV7()
-	helpers.PanicIfError(err)
-
-	newUserToken := models.UserToken{
-		ID:           userTokenId,
-		UserId:       userToken.UserId,
-		ExpiryAt:     expiryAt,
-		RefreshToken: refreshToken,
-	}
-
-	err = service.AuthRepository.AddUserToken(ctx, service.DB, &newUserToken)
-	helpers.PanicIfError(err)
-
-	user, err := service.AuthRepository.FindById(ctx, service.DB, userToken.UserId)
-	if err != nil {
-		return nil, helpers.CustomError(err.Error())
-	}
-
-	if user == nil {
-		return nil, helpers.CustomError("User not found")
-	}
-
-	userClaim := map[string]interface{}{
-		"id":       user.ID,
-		"username": user.Username,
-		"email":    user.Email,
-	}
-
-	token, err := api.GenerateToken(userClaim)
-	helpers.PanicIfError(err)
-
-	userTokenResponse = response.UserTokenResponse{
-		UserId:       user.ID,
-		Expiry:       float64(expiryAt.Unix()),
-		AccessToken:  token,
-		RefreshToken: refreshToken,
+		return nil, err
 	}
 
 	return &userTokenResponse, nil
@@ -166,9 +204,8 @@ func (service *AuthServiceImpl) FindUserById(ctx context.Context, id uuid.UUID) 
 
 	user, err := service.AuthRepository.FindById(ctx, service.DB, id)
 	if err != nil {
-		return nil, helpers.CustomError(err.Error())
+		return nil, helpers.CustomError("Failed to find user")
 	}
-
 	if user == nil {
 		return nil, helpers.CustomError("User not found")
 	}

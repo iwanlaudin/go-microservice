@@ -8,8 +8,8 @@ CREATE TABLE "user"
     salt        VARCHAR(256)    NOT NULL,
     password    VARCHAR(256)    NOT NULL,
     created_by  VARCHAR(256),
-    created_at  TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at  TIMESTAMP WITH TIME ZONE,
     updated_by  VARCHAR(256),
-    updated_at  TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP WITH TIME ZONE,
     is_deleted   BOOLEAN DEFAULT FALSE
 );

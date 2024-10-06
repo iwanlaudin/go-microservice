@@ -61,7 +61,7 @@ func (h *AuthHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	request := request.RefreshTokenRequest{}
 
-	helpers.ReadFromRequestBody(r, request)
+	helpers.ReadFromRequestBody(r, &request)
 	if err := h.Validate.Struct(request); err != nil {
 		api.NewAppResponse("Invalid parameter", http.StatusBadRequest).ValidationErr(w, err)
 		return
@@ -75,7 +75,7 @@ func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	api.NewAppResponse("Refresh token successfully", http.StatusOK).Ok(w, userToken)
 }
 
-func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 	idStr := api.UserIDFromContext(r.Context())
 
 	userId, err := helpers.ConvertUserIDToUUID(idStr)

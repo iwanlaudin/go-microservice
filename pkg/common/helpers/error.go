@@ -11,6 +11,12 @@ func PanicIfError(err error) {
 	}
 }
 
+func PanicIfNil(obj interface{}) {
+	if obj != nil {
+		panic("")
+	}
+}
+
 // CustomError wraps an error with a custom message.
 func CustomError(message string, args ...interface{}) error {
 	return fmt.Errorf(message, args...)

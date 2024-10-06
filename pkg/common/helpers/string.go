@@ -60,3 +60,7 @@ func ConvertUserIDToUUID(userId string) (uuid.UUID, error) {
 	}
 	return id, nil
 }
+
+func GenerateRefreshToken() string {
+	return strings.ReplaceAll(uuid.NewString(), "-", "")
+}

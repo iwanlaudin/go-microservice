@@ -7,8 +7,8 @@ CREATE TABLE "userToken"
     used_at         TIMESTAMP WITH TIME ZONE,
     is_used         BOOLEAN DEFAULT FALSE,
     created_by      VARCHAR(256),
-    created_at      TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at      TIMESTAMP WITH TIME ZONE,
     updated_by      VARCHAR(256),
-    updated_at      TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP WITH TIME ZONE,
     is_deleted      BOOLEAN DEFAULT FALSE
 )

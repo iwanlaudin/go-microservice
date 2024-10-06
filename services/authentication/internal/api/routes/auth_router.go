@@ -12,7 +12,7 @@ func AuthRouter(h *handlers.AuthHandler) chi.Router {
 	r.Post("/sign-in", h.SignIn)
 	r.Post("/sign-up", h.CreateUser)
 	r.With(api.AuthMiddleware).Post("/refresh-token", h.RefreshToken)
-	r.With(api.AuthMiddleware).Get("/me", h.Me)
+	r.With(api.AuthMiddleware).Get("/me", h.GetMe)
 
 	return r
 }
