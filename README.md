@@ -80,7 +80,13 @@ go run services/order/cmd/main.go
 ```
 ## Running Go Migrate
 1. Make sure the migration is available in the migrations folder. This folder is usually located in `migrations`
-2. Run the migration command To apply the migration, run the following command:
+2. Creating a New Migration File
+
+To create a new migration file, you can use the following command:
+```bash
+migrate create -ext sql -dir services/authentication/migrations -seq nama_migrasi
+```
+3. Run the migration command To apply the migration, run the following command:
 ```base
 migrate -database "postgres://postgres:root@localhost:5432/AuthDb?sslmode=disable" -path services/authentication/migrations up
 ```
