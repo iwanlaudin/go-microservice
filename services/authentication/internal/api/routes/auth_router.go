@@ -6,13 +6,16 @@ import (
 	"github.com/iwanlaudin/go-microservice/services/authentication/internal/api/handlers"
 )
 
-func AuthRouter(h *handlers.AuthHandler) chi.Router {
+func AuthRouter(handler *handlers.AuthHandler) chi.Router {
 	r := chi.NewRouter()
 
-	r.Post("/sign-in", h.SignIn)
-	r.Post("/sign-up", h.CreateUser)
-	r.With(api.AuthMiddleware).Post("/refresh-token", h.RefreshToken)
-	r.With(api.AuthMiddleware).Get("/me", h.GetMe)
+	r.Post("/auth/sign-in", handler.SignIn)
+	r.Post("/auth/sign-up", handler.SignUp)
+	r.Route("/auth", func(r chi.Router) {
+		r.Use(api.AuthMiddleware)
+		r.Post("/refresh-token", handler.RefreshToken)
+		r.Get("/me", handler.GetMe)
+	})
 
 	return r
 }

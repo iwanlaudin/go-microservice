@@ -26,7 +26,7 @@ func NewAuthService(authRepository repository.AuthRepository, db *sqlx.DB) AuthS
 	}
 }
 
-func (service *AuthServiceImpl) Create(ctx context.Context, request request.CreateUserRequest) (*response.UserResponse, error) {
+func (service *AuthServiceImpl) Create(ctx context.Context, request *request.CreateUserRequest) (*response.UserResponse, error) {
 	var userResponse response.UserResponse
 
 	userId, err := uuid.NewV7()

@@ -22,7 +22,7 @@ func NewAuthHandler(authService service.AuthService, validate *validator.Validat
 	}
 }
 
-func (h *AuthHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	request := request.CreateUserRequest{}
 
 	helpers.ReadFromRequestBody(r, &request)
@@ -31,7 +31,7 @@ func (h *AuthHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := h.AuthService.Create(r.Context(), request)
+	response, err := h.AuthService.Create(r.Context(), &request)
 	if err != nil {
 		api.NewAppResponse(err.Error(), http.StatusBadRequest).Err(w)
 		return
@@ -78,7 +78,7 @@ func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 func (h *AuthHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 	idStr := api.UserIDFromContext(r.Context())
 
-	userId, err := helpers.ConvertUserIDToUUID(idStr)
+	userId, err := helpers.ConvertStringToUUID(idStr)
 	if err != nil {
 		api.NewAppResponse(err.Error(), http.StatusInternalServerError).Err(w)
 		return

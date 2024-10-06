@@ -33,7 +33,7 @@ func NewRouter(db *sqlx.DB, validate *validator.Validate) *chi.Mux {
 	authHandler := handlers.NewAuthHandler(authService, validate)
 
 	// Apps router
-	r.Mount("/auth", AuthRouter(authHandler))
+	r.Mount("/api", AuthRouter(authHandler))
 
 	return r
 }

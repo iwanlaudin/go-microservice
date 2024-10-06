@@ -53,8 +53,8 @@ func ValidateMail(email string) error {
 	return nil
 }
 
-func ConvertUserIDToUUID(userId string) (uuid.UUID, error) {
-	id, err := uuid.Parse(userId)
+func ConvertStringToUUID(s string) (uuid.UUID, error) {
+	id, err := uuid.Parse(s)
 	if err != nil {
 		return uuid.Nil, CustomError("Failed to convert userId to UUID")
 	}
