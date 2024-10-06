@@ -46,6 +46,32 @@ myproject/
 └── README.md
 ```
 
+## Database and Interaction Diagram
+```
++-----------------------+              +---------------------+
+|   Database API Event   |              |   Database API Tiket |
+|-----------------------|              |---------------------|
+|  events               |<-------------|  tickets             |
++-----------------------+              +---------------------+
+       ^                                   |
+       |                                   v
++-----------------------+              +---------------------+
+|   Database API Notifikasi |        +---------------------+
+|-----------------------|          |   Database API Pembayaran |
+|  notifications        |<---------|---------------------|
++-----------------------+          |  payments            |
+                                   +---------------------+
+                                       ^
+                                       |
+                               +---------------------+
+                               | Database API Autentikasi |
+                               |---------------------|
+                               | users               |
+                               | auth_tokens         |
+                               +---------------------+
+
+```
+
 ## Features
 
 - **RESTful API**: Manage data with easily accessible CRUD endpoints.
