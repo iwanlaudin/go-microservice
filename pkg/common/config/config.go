@@ -17,11 +17,11 @@ var (
 type Config struct {
 	AuthDbURL          string
 	EventDbURL         string
-	OrderDbURL         string
+	TicketDbURL        string
 	PaymentDbURL       string
 	AuthServicePort    string
 	EventServicePort   string
-	OrderServicePort   string
+	TicketServicePort  string
 	PaymentServicePort string
 	LogLevel           string
 	SecretKey          string
@@ -43,11 +43,11 @@ func Load() *Config {
 	config := &Config{
 		AuthDbURL:          getEnv("AUTH_DB_URL", "postgres://user:password@authDb:5432/authDb?sslmode=disable"),
 		EventDbURL:         getEnv("EVENT_DB_URL", "postgres://user:password@authDb:5432/eventDb?sslmode=disable"),
-		OrderDbURL:         getEnv("ORDER_DB_URL", "postgres://user:password@orderdb:5432/orderdb?sslmode=disable"),
+		TicketDbURL:        getEnv("TICKET_DB_URL", "postgres://user:password@orderdb:5432/orderdb?sslmode=disable"),
 		PaymentDbURL:       getEnv("PAYMENT_DB_URL", "postgres://user:password@orderdb:5432/paymentDb?sslmode=disable"),
 		AuthServicePort:    getEnv("AUTH_SERVICE_PORT", ":8080"),
 		EventServicePort:   getEnv("EVENT_SERVICE_PORT", ":8081"),
-		OrderServicePort:   getEnv("ORDER_SERVICE_PORT", ":8082"),
+		TicketServicePort:  getEnv("TICKET_SERVICE_PORT", ":8082"),
 		PaymentServicePort: getEnv("PAYMENT_SERVICE_PORT", ":8083"),
 		LogLevel:           getEnv("LOG_LEVEL", "info"),
 		SecretKey:          getEnv("SECRET_KEY", "x-secret-key"),

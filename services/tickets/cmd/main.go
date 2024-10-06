@@ -8,14 +8,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/iwanlaudin/go-microservice/pkg/common/api"
+	"github.com/go-playground/validator/v10"
 	"github.com/iwanlaudin/go-microservice/pkg/common/config"
 	"github.com/iwanlaudin/go-microservice/pkg/common/database"
 	"github.com/iwanlaudin/go-microservice/pkg/common/logger"
 	"github.com/iwanlaudin/go-microservice/pkg/rabbitmq"
-	"github.com/iwanlaudin/go-microservice/services/order/internal/api/routes"
+	"github.com/iwanlaudin/go-microservice/services/tickets/internal/api/routes"
 )
 
 func main() {
@@ -26,7 +24,7 @@ func main() {
 	log := logger.New(cfg.LogLevel)
 
 	// Initialize Database Connection
-	db, err := database.NewConnection(cfg.OrderDbURL)
+	db, err := database.NewConnection(cfg.TicketDbURL)
 	if err != nil {
 		log.Fatal("Failed to connect to database", logger.Error(err))
 	}
@@ -44,26 +42,16 @@ func main() {
 	}
 	defer rabbitMQ.Close()
 
+	// Initialize validator
+	validate := validator.New()
+
 	// Initialize Router
-	r := chi.NewRouter()
-
-	// Base Middleware
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-
-	// Cutome Middleware
-	// Set global timeout to 15 seconds
-	r.Use(api.TimeoutMiddleware(15 * time.Second))
-
-	// Route
-	routes.SetupRoutes(r)
+	handler := routes.NewRoute(db, validate)
 
 	// Configuration Server
 	srv := &http.Server{
-		Addr:         cfg.OrderServicePort,
-		Handler:      r,
+		Addr:         cfg.TicketServicePort,
+		Handler:      handler,
 		ReadTimeout:  20 * time.Second,
 		WriteTimeout: 20 * time.Second,
 		IdleTimeout:  60 * time.Second,

@@ -5,22 +5,22 @@
 ```
 myproject/
 ├── services/
-│   ├── order/
+│   ├── tickets/
 │   │   ├── cmd/
-│   │   │   └── main.go           # Entry point untuk Order service
+│   │   │   └── main.go           # Entry point untuk Ticket service
 │   │   ├── internal/
 │   │   │   ├── api/
-│   │   │   │   ├── handlers/     # HTTP request handlers untuk Order
-│   │   │   │   ├── middleware/   # HTTP middleware khusus Order
-│   │   │   │   └── routes/       # Order API route definitions
-│   │   │   ├── models/           # Model data Order
-│   │   │   ├── repository/       # Lapisan akses data Order
-│   │   │   └── service/          # Logika bisnis Order
+│   │   │   │   ├── handlers/     # HTTP request handlers untuk Ticket
+│   │   │   │   ├── middleware/   # HTTP middleware khusus Ticket
+│   │   │   │   └── routes/       # Ticket API route definitions
+│   │   │   ├── models/           # Model data Ticket
+│   │   │   ├── repository/       # Lapisan akses data Ticket
+│   │   │   └── service/          # Logika bisnis Ticket
 │   │   │   └── dto/              # Folder baru untuk request dan response
 │   │   │       ├── request/      # Definisi struktur request
 │   │   │       └── response/     # Definisi struktur response
-│   │   ├── config/               # Konfigurasi Order service
-│   │   ├── migrations/           # Database migrations Order service
+│   │   ├── config/               # Konfigurasi Ticket service
+│   │   ├── migrations/           # Database migrations Ticket service
 │   │   └── Dockerfile
 │   └── ...                       # Folder untuk service lainnya
 ├── pkg/
