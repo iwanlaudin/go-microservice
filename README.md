@@ -62,3 +62,39 @@ myproject/
 - **Scalability**: Designed to accommodate user growth.
 - **Data Storage**: Support for postgres database types.
 - **Error Management**: Provides clear error response.
+
+## How to Run an API Application
+1. Clone Repository
+```bash
+git clone https://github.com/iwanlaudin/go-microservice.git
+```
+2. Install Dependencies
+```base
+go mod tidy
+```
+3. Run Application
+```base
+go run services/authentication/cmd/main.go
+go run services/order/cmd/main.go
+...
+```
+## Running Go Migrate
+1. Make sure the migration is available in the migrations folder. This folder is usually located in `migrations`
+2. Run the migration command To apply the migration, run the following command:
+```base
+migrate -database "postgres://postgres:root@localhost:5432/AuthDb?sslmode=disable" -path services/authentication/migrations up
+```
+To cancel the migration, use:
+```base
+migrate -database "postgres://postgres:root@localhost:5432/AuthDb?sslmode=disable" -path services/authentication/migrations down
+```
+
+## Testing the API
+```base
+curl -X GET http://localhost:8080/endpoint
+```
+
+# Contact
+If you have any questions or feedback, please contact iwanlaudin01@gmail.com.
+
+Please customize with your app details, such as app name, description, available endpoints, and license. If there are any other sections you would like to add, please let me know!
