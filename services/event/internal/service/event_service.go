@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"github.com/iwanlaudin/go-microservice/services/events/internal/dto/request"
-	"github.com/iwanlaudin/go-microservice/services/events/internal/dto/response"
+	"github.com/iwanlaudin/go-microservice/services/event/internal/dto/request"
+	"github.com/iwanlaudin/go-microservice/services/event/internal/dto/response"
 )
 
 type EventService interface {

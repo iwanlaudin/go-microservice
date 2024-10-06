@@ -13,7 +13,7 @@ import (
 	"github.com/iwanlaudin/go-microservice/pkg/common/database"
 	"github.com/iwanlaudin/go-microservice/pkg/common/logger"
 	"github.com/iwanlaudin/go-microservice/pkg/rabbitmq"
-	"github.com/iwanlaudin/go-microservice/services/tickets/internal/api/routes"
+	"github.com/iwanlaudin/go-microservice/services/ticket/internal/api/routes"
 )
 
 func main() {

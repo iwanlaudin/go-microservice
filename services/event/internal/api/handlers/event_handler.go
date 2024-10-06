@@ -7,8 +7,8 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/iwanlaudin/go-microservice/pkg/common/api"
 	"github.com/iwanlaudin/go-microservice/pkg/common/helpers"
-	"github.com/iwanlaudin/go-microservice/services/events/internal/dto/request"
-	"github.com/iwanlaudin/go-microservice/services/events/internal/service"
+	"github.com/iwanlaudin/go-microservice/services/event/internal/dto/request"
+	"github.com/iwanlaudin/go-microservice/services/event/internal/service"
 )
 
 type EventHandler struct {

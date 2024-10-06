@@ -7,10 +7,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/iwanlaudin/go-microservice/pkg/common/api"
 	"github.com/iwanlaudin/go-microservice/pkg/common/helpers"
-	"github.com/iwanlaudin/go-microservice/services/events/internal/dto/request"
-	"github.com/iwanlaudin/go-microservice/services/events/internal/dto/response"
-	"github.com/iwanlaudin/go-microservice/services/events/internal/models"
-	"github.com/iwanlaudin/go-microservice/services/events/internal/repository"
+	"github.com/iwanlaudin/go-microservice/services/event/internal/dto/request"
+	"github.com/iwanlaudin/go-microservice/services/event/internal/dto/response"
+	"github.com/iwanlaudin/go-microservice/services/event/internal/models"
+	"github.com/iwanlaudin/go-microservice/services/event/internal/repository"
 	"github.com/jmoiron/sqlx"
 )
 

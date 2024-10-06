@@ -7,9 +7,9 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-playground/validator/v10"
 	"github.com/iwanlaudin/go-microservice/pkg/common/api"
-	"github.com/iwanlaudin/go-microservice/services/events/internal/api/handlers"
-	"github.com/iwanlaudin/go-microservice/services/events/internal/repository"
-	"github.com/iwanlaudin/go-microservice/services/events/internal/service"
+	"github.com/iwanlaudin/go-microservice/services/event/internal/api/handlers"
+	"github.com/iwanlaudin/go-microservice/services/event/internal/repository"
+	"github.com/iwanlaudin/go-microservice/services/event/internal/service"
 	"github.com/jmoiron/sqlx"
 )
 
