@@ -3,7 +3,7 @@ package routes
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/iwanlaudin/go-microservice/pkg/common/api"
-	"github.com/iwanlaudin/go-microservice/services/event/internal/api/handlers"
+	"github.com/iwanlaudin/go-microservice/services/events/internal/api/handlers"
 )
 
 func EventRouter(handler *handlers.EventHandler) chi.Router {
