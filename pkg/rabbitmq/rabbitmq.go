@@ -53,7 +53,7 @@ func (r *RabbitMQ) PublishMessage(ctx context.Context, exchange, routingKey stri
 		})
 }
 
-func (r *RabbitMQ) ConsumeMessages(queueName string, handler func([]byte)) error {
+func (r *RabbitMQ) ConsumeMessages(ctx context.Context, queueName string, handler func(context.Context, []byte)) error {
 	msgs, err := r.channel.Consume(
 		queueName, // queue
 		"",        // consumer
@@ -69,7 +69,7 @@ func (r *RabbitMQ) ConsumeMessages(queueName string, handler func([]byte)) error
 
 	go func() {
 		for d := range msgs {
-			handler(d.Body)
+			handler(ctx, d.Body)
 		}
 	}()
 
