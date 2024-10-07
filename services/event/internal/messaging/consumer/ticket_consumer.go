@@ -8,11 +8,6 @@ import (
 	"github.com/iwanlaudin/go-microservice/services/event/internal/dto/messaging/consumer"
 )
 
-func (mc *MessageConsumer) StartConsuming(ctx context.Context) error {
-	err := mc.RabbitMQ.ConsumeMessages(ctx, "ticket.reserved", mc.handleTicketReserved)
-	return err
-}
-
 func (mc *MessageConsumer) handleTicketReserved(ctx context.Context, message []byte) {
 	var reservationMsg consumer.TicketReservedMessage
 	err := json.Unmarshal(message, &reservationMsg)
