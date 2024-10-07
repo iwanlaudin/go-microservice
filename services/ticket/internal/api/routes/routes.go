@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-playground/validator/v10"
 	"github.com/iwanlaudin/go-microservice/pkg/common/api"
+	"github.com/iwanlaudin/go-microservice/pkg/common/config"
 	"github.com/iwanlaudin/go-microservice/pkg/common/logger"
 	"github.com/iwanlaudin/go-microservice/pkg/rabbitmq"
 	"github.com/iwanlaudin/go-microservice/pkg/redis"
@@ -16,7 +17,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func NewRoute(db *sqlx.DB, redis *redis.RedisClient, rabbitMQ *rabbitmq.RabbitMQ, validate *validator.Validate, log logger.Logger) *chi.Mux {
+func NewRoute(db *sqlx.DB, redis *redis.RedisClient, rabbitMQ *rabbitmq.RabbitMQ, validate *validator.Validate, log logger.Logger, cfg *config.Config) *chi.Mux {
 	// Initialize Router
 	r := chi.NewRouter()
 
@@ -32,7 +33,7 @@ func NewRoute(db *sqlx.DB, redis *redis.RedisClient, rabbitMQ *rabbitmq.RabbitMQ
 
 	// Initialize Repository, Service and Handler
 	ticketRepository := repository.NewTicketRepository()
-	ticketService := service.NewTicketService(*ticketRepository, db, redis, rabbitMQ, log)
+	ticketService := service.NewTicketService(*ticketRepository, db, redis, rabbitMQ, log, cfg.EventServiceURL)
 	ticketHandler := handlers.NewTicketHandler(*ticketService, validate)
 
 	// Apps router

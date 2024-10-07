@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -40,8 +41,8 @@ func (handler *TicketHandler) ReserveTicket(writer http.ResponseWriter, req *htt
 		return
 	}
 
-	authHeader := req.Header.Get("Authorization")
-	ticketResponse, err := handler.TicketService.ReserveTicket(req.Context(), authHeader, &reservationTicketRequest)
+	authToken := strings.Fields(req.Header.Get("Authorization"))
+	ticketResponse, err := handler.TicketService.ReserveTicket(req.Context(), authToken[1], &reservationTicketRequest)
 	if err != nil {
 		api.NewAppResponse(err.Error(), http.StatusBadRequest).Err(writer)
 		return

@@ -23,6 +23,7 @@ type Config struct {
 	EventServicePort   string
 	TicketServicePort  string
 	PaymentServicePort string
+	EventServiceURL    string
 	LogLevel           string
 	SecretKey          string
 	RabbitMQURL        string
@@ -49,6 +50,7 @@ func Load() *Config {
 		EventServicePort:   getEnv("EVENT_SERVICE_PORT", ":8081"),
 		TicketServicePort:  getEnv("TICKET_SERVICE_PORT", ":8082"),
 		PaymentServicePort: getEnv("PAYMENT_SERVICE_PORT", ":8083"),
+		EventServiceURL:    getEnv("EVENT_SERVICE_URL", ":8083"),
 		LogLevel:           getEnv("LOG_LEVEL", "info"),
 		SecretKey:          getEnv("SECRET_KEY", "x-secret-key"),
 		RabbitMQURL:        getEnv("RABBIT_MQ_URL", "amqp://guest:guest@localhost:5672/"),

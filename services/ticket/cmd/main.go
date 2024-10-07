@@ -54,7 +54,7 @@ func main() {
 	validate := validator.New()
 
 	// Initialize Router
-	handler := routes.NewRoute(db, redisClient, rabbitMQ, validate, log)
+	handler := routes.NewRoute(db, redisClient, rabbitMQ, validate, log, cfg)
 
 	// Configuration Server
 	srv := &http.Server{

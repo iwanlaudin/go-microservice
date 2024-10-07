@@ -30,9 +30,10 @@ type TicketService struct {
 	HttpClient       *http.Client
 	RabbitMQ         *rabbitmq.RabbitMQ
 	Log              logger.Logger
+	EventServiceURL  string
 }
 
-func NewTicketService(ticketRepository repository.TicketRepository, db *sqlx.DB, redisClient *redisClient.RedisClient, rabbitMQ *rabbitmq.RabbitMQ, log logger.Logger) *TicketService {
+func NewTicketService(ticketRepository repository.TicketRepository, db *sqlx.DB, redisClient *redisClient.RedisClient, rabbitMQ *rabbitmq.RabbitMQ, log logger.Logger, eventServiceUrl string) *TicketService {
 	return &TicketService{
 		TicketRepository: ticketRepository,
 		DB:               db,
@@ -40,29 +41,30 @@ func NewTicketService(ticketRepository repository.TicketRepository, db *sqlx.DB,
 		HttpClient: &http.Client{
 			Timeout: 10 * time.Second,
 		},
-		RabbitMQ: rabbitMQ,
-		Log:      log,
+		RabbitMQ:        rabbitMQ,
+		Log:             log,
+		EventServiceURL: eventServiceUrl,
 	}
 }
 
 func (service *TicketService) ReserveTicket(ctx context.Context, authToken string, request *request.TicketReservatioRequest) (*models.Ticket, error) {
 	eventCache, err := service.getOrCreateEventCache(ctx, request.EventID, authToken)
 	if err != nil {
-		return nil, helpers.CustomError("failed to get event info: %w", err)
+		return nil, helpers.CustomError("Failed to get event info: %w", err)
 	}
 
 	if eventCache.Date.Before(time.Now()) {
-		return nil, helpers.CustomError("event has already passed")
+		return nil, helpers.CustomError("Event has already passed")
 	}
 
 	if eventCache.AvailableTickets < request.Quantity {
-		return nil, helpers.CustomError("not enough tickets available")
+		return nil, helpers.CustomError("Not enough tickets available")
 	}
 
 	eventCache.AvailableTickets -= request.Quantity
 	err = service.createEventCache(ctx, eventCache)
 	if err != nil {
-		return nil, helpers.CustomError("failed to update event cache: %w", err)
+		return nil, helpers.CustomError("Failed to update event cache: %w", err)
 	}
 
 	now := time.Now().UTC()
@@ -86,28 +88,10 @@ func (service *TicketService) ReserveTicket(ctx context.Context, authToken strin
 	if err != nil {
 		eventCache.AvailableTickets += request.Quantity
 		_ = service.createEventCache(ctx, eventCache)
-		return nil, helpers.CustomError("failed to create ticket: %w", err)
+		return nil, helpers.CustomError("Failed to create ticket: %w", err)
 	}
 
-	reservationMsg := publisher.TicketReservedEvent{
-		ID:       ticket.ID,
-		EventID:  ticket.EventID,
-		UserID:   ticket.UserID,
-		Quantity: ticket.Quantity,
-	}
-
-	reservationMsgJSON, err := json.Marshal(reservationMsg)
-	if err != nil {
-		return ticket, nil
-	}
-
-	err = service.publishWithRetry(ctx, "ticket.reserved", "ticket.created", reservationMsgJSON)
-	if err != nil {
-		service.Log.Error(
-			"Failed to publish ticket created event after retries",
-			logger.Error(err),
-			logger.String("ticketID", ticket.ID.String()))
-	}
+	service.publishTicketReservedCreated(ctx, ticket)
 
 	return ticket, nil
 }
@@ -137,6 +121,27 @@ func (service *TicketService) GetAllTicketByUser(ctx context.Context) (*[]respon
 	return &ticketResponse, nil
 }
 
+func (service *TicketService) publishTicketReservedCreated(ctx context.Context, ticket *models.Ticket) {
+	reservationMsg := publisher.TicketReservedEvent{
+		ID:       ticket.ID,
+		EventID:  ticket.EventID,
+		UserID:   ticket.UserID,
+		Quantity: ticket.Quantity,
+	}
+
+	reservationMsgJSON, err := json.Marshal(reservationMsg)
+	if err != nil {
+		service.Log.Error("Failed to encode json", logger.Error(err))
+	}
+
+	err = service.publishWithRetry(ctx, "ticket.reserved", "ticket.created", reservationMsgJSON)
+	if err != nil {
+		service.Log.Error("Failed to publish ticket created event after retries", logger.Error(err))
+	}
+
+	service.Log.Info("Successfully to publish ticket created")
+}
+
 func (service *TicketService) publishWithRetry(ctx context.Context, exchange, routingKey string, body []byte) error {
 	maxRetries := 3
 	for i := 0; i < maxRetries; i++ {
@@ -147,14 +152,14 @@ func (service *TicketService) publishWithRetry(ctx context.Context, exchange, ro
 		service.Log.Warn("Failed to publish message, retrying", logger.Error(err))
 		time.Sleep(time.Second * time.Duration(i+1))
 	}
-	return helpers.CustomError("failed to publish message after %d attempts", maxRetries)
+	return helpers.CustomError("Failed to publish message after %d attempts", maxRetries)
 }
 
 func (service *TicketService) getOrCreateEventCache(ctx context.Context, eventId uuid.UUID, authToken string) (*models.Event, error) {
 	eventCache, err := service.RedisClient.Get(ctx, eventId.String())
 	if err != nil {
 		if !errors.Is(err, redis.Nil) {
-			return nil, helpers.CustomError("event not found in cache: %w", err)
+			return nil, helpers.CustomError("Event not found in cache: %w", err)
 		}
 	}
 
@@ -166,7 +171,7 @@ func (service *TicketService) getOrCreateEventCache(ctx context.Context, eventId
 
 	eventResult, err = service.fetchEventFromService(ctx, eventId, authToken)
 	if err != nil {
-		return nil, helpers.CustomError("failed to fetch event from service: %w", err)
+		return nil, helpers.CustomError("Failed to fetch event from service: %w", err)
 	}
 
 	err = service.RedisClient.Set(ctx, eventId.String(), eventResult, time.Hour*1)
@@ -187,34 +192,34 @@ func (service *TicketService) createEventCache(ctx context.Context, event *model
 }
 
 func (service *TicketService) fetchEventFromService(ctx context.Context, eventID uuid.UUID, authToken string) (*models.Event, error) {
-	url := fmt.Sprintf("%s/api/events/%s", "http://localhost:8081", eventID)
+	url := fmt.Sprintf("%s/api/events/%s", service.EventServiceURL, eventID)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return nil, helpers.CustomError("failed to create request: %w", err)
+		return nil, helpers.CustomError("Failed to create request: %w", err)
 	}
 
-	req.Header.Set("Authorization", authToken)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := service.HttpClient.Do(req)
 	if err != nil {
-		return nil, helpers.CustomError("failed to send request: %w", err)
+		return nil, helpers.CustomError("Failed to send request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	var eventResponse response.EventResponse
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, helpers.CustomError("unexpected status code: %d", resp.StatusCode)
+		return nil, helpers.CustomError("Unexpected status code: %d", resp.StatusCode)
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&eventResponse); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
+		return nil, helpers.CustomError("Failed to decode response: %w", err)
 	}
 
 	if eventResponse.Items == nil {
-		return nil, helpers.CustomError("event items is nil or empty")
+		return nil, helpers.CustomError("Event items is nil or empty")
 	}
 
 	eventResult := models.Event{
