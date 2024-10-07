@@ -65,8 +65,6 @@ func (service *TicketService) ReserveTicket(ctx context.Context, authToken strin
 		return nil, helpers.CustomError("failed to update event cache: %w", err)
 	}
 
-	fmt.Printf("eventCache: %v\n", eventCache)
-
 	now := time.Now().UTC()
 	eventId, err := uuid.NewV7()
 	if err != nil {
@@ -155,10 +153,9 @@ func (service *TicketService) publishWithRetry(ctx context.Context, exchange, ro
 func (service *TicketService) getOrCreateEventCache(ctx context.Context, eventId uuid.UUID, authToken string) (*models.Event, error) {
 	eventCache, err := service.RedisClient.Get(ctx, eventId.String())
 	if err != nil {
-		if errors.Is(err, redis.Nil) {
+		if !errors.Is(err, redis.Nil) {
 			return nil, helpers.CustomError("event not found in cache: %w", err)
 		}
-		return nil, helpers.CustomError("failed to get event from cache: %w", err)
 	}
 
 	var eventResult *models.Event
