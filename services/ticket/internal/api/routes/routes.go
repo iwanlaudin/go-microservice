@@ -7,10 +7,16 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-playground/validator/v10"
 	"github.com/iwanlaudin/go-microservice/pkg/common/api"
+	"github.com/iwanlaudin/go-microservice/pkg/common/logger"
+	"github.com/iwanlaudin/go-microservice/pkg/rabbitmq"
+	"github.com/iwanlaudin/go-microservice/pkg/redis"
+	"github.com/iwanlaudin/go-microservice/services/ticket/internal/api/handlers"
+	"github.com/iwanlaudin/go-microservice/services/ticket/internal/repository"
+	"github.com/iwanlaudin/go-microservice/services/ticket/internal/service"
 	"github.com/jmoiron/sqlx"
 )
 
-func NewRoute(db *sqlx.DB, validate *validator.Validate) *chi.Mux {
+func NewRoute(db *sqlx.DB, redis *redis.RedisClient, rabbitMQ *rabbitmq.RabbitMQ, validate *validator.Validate, log logger.Logger) *chi.Mux {
 	// Initialize Router
 	r := chi.NewRouter()
 
@@ -25,9 +31,12 @@ func NewRoute(db *sqlx.DB, validate *validator.Validate) *chi.Mux {
 	r.Use(api.ErrorLogger)
 
 	// Initialize Repository, Service and Handler
+	ticketRepository := repository.NewTicketRepository()
+	ticketService := service.NewTicketService(*ticketRepository, db, redis, rabbitMQ, log)
+	ticketHandler := handlers.NewTicketHandler(*ticketService, validate)
 
 	// Apps router
-	r.Mount("/api", OrderRoute())
+	r.Mount("/api", OrderRoute(ticketHandler))
 
 	return r
 }

@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -32,7 +33,12 @@ func NewRedisClient(connString string) (*RedisClient, error) {
 }
 
 func (r *RedisClient) Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
-	return r.Client.Set(ctx, key, value, expiration).Err()
+	valueJSON, err := json.Marshal(value)
+	if err != nil {
+		return fmt.Errorf("failed to marshal value to JSON: %w", err)
+	}
+
+	return r.Client.Set(ctx, key, valueJSON, expiration).Err()
 }
 
 func (r *RedisClient) Get(ctx context.Context, key string) (string, error) {

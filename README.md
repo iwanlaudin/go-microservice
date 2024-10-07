@@ -16,6 +16,7 @@ myproject/
 │   │   │   ├── models/           # Model data Ticket
 │   │   │   ├── repository/       # Lapisan akses data Ticket
 │   │   │   └── service/          # Logika bisnis Ticket
+│   │   │   └── messaging/        # Logika messaging Ticket
 │   │   │   └── dto/              # Folder baru untuk request dan response
 │   │   │       ├── request/      # Definisi struktur request
 │   │   │       └── response/     # Definisi struktur response

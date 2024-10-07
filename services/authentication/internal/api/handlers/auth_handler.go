@@ -76,13 +76,7 @@ func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) GetMe(w http.ResponseWriter, r *http.Request) {
-	idStr := api.UserIDFromContext(r.Context())
-
-	userId, err := helpers.ConvertStringToUUID(idStr)
-	if err != nil {
-		api.NewAppResponse(err.Error(), http.StatusInternalServerError).Err(w)
-		return
-	}
+	userId := api.UserIDFromContext(r.Context())
 
 	userResponse, err := h.AuthService.FindUserById(r.Context(), userId)
 	if err != nil {

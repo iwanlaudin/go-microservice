@@ -2,6 +2,9 @@ package api
 
 import (
 	"context"
+
+	"github.com/google/uuid"
+	"github.com/iwanlaudin/go-microservice/pkg/common/helpers"
 )
 
 type contextKey string
@@ -26,12 +29,13 @@ func UserFromContext(ctx context.Context) *UserContext {
 	return userContext
 }
 
-func UserIDFromContext(ctx context.Context) string {
+func UserIDFromContext(ctx context.Context) uuid.UUID {
 	user, ok := ctx.Value(userContextKey).(*UserContext)
 	if !ok {
-		return ""
+		return uuid.Nil
 	}
-	return user.ID
+	id, _ := helpers.ConvertStringToUUID(user.ID)
+	return id
 }
 
 func UserEmailFromContext(ctx context.Context) string {
