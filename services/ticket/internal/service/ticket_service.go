@@ -14,7 +14,7 @@ import (
 	"github.com/iwanlaudin/go-microservice/pkg/common/logger"
 	"github.com/iwanlaudin/go-microservice/pkg/rabbitmq"
 	redisClient "github.com/iwanlaudin/go-microservice/pkg/redis"
-	"github.com/iwanlaudin/go-microservice/services/ticket/internal/dto/messaging"
+	"github.com/iwanlaudin/go-microservice/services/ticket/internal/dto/messaging/publisher"
 	"github.com/iwanlaudin/go-microservice/services/ticket/internal/dto/request"
 	"github.com/iwanlaudin/go-microservice/services/ticket/internal/dto/response"
 	"github.com/iwanlaudin/go-microservice/services/ticket/internal/models"
@@ -91,7 +91,7 @@ func (service *TicketService) ReserveTicket(ctx context.Context, authToken strin
 		return nil, helpers.CustomError("failed to create ticket: %w", err)
 	}
 
-	reservationMsg := messaging.TicketReservedMessage{
+	reservationMsg := publisher.TicketReservedEvent{
 		ID:       ticket.ID,
 		EventID:  ticket.EventID,
 		UserID:   ticket.UserID,
