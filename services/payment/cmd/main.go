@@ -12,7 +12,9 @@ import (
 	"github.com/iwanlaudin/go-microservice/pkg/common/config"
 	"github.com/iwanlaudin/go-microservice/pkg/common/database"
 	"github.com/iwanlaudin/go-microservice/pkg/common/logger"
+	"github.com/iwanlaudin/go-microservice/pkg/rabbitmq"
 	"github.com/iwanlaudin/go-microservice/services/payment/internal/api/routes"
+	"github.com/iwanlaudin/go-microservice/services/payment/internal/messaging/consumer"
 )
 
 func main() {
@@ -34,6 +36,13 @@ func main() {
 		log.Fatal("Failed to run database migrations", logger.Error(err))
 	}
 
+	// Initialize RabbitMQ
+	rabbitMQ, err := rabbitmq.NewRabbitMQ(cfg.RabbitMQURL)
+	if err != nil {
+		log.Fatal("Failed to connect to RabbitMQ:", logger.Error(err))
+	}
+	defer rabbitMQ.Close()
+
 	// Initialize validator
 	validate := validator.New()
 
@@ -47,6 +56,10 @@ func main() {
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 	}
+
+	// Initialize and start RabbitMQ consumer
+	newConsumer := consumer.NewMessageConsumer(rabbitMQ, db, log)
+	startRabbitMQConsumer(context.Background(), newConsumer)
 
 	// Run server
 	go func() {
@@ -69,4 +82,13 @@ func main() {
 	}
 
 	log.Info("Server exiting")
+}
+
+func startRabbitMQConsumer(ctx context.Context, consumer *consumer.MessageConsumer) {
+	go func() {
+		err := consumer.StartConsuming(ctx)
+		if err != nil {
+			consumer.Logger.Error("Failed to consume RabbitMQ messages", logger.Error(err))
+		}
+	}()
 }

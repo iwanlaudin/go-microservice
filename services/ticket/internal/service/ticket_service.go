@@ -91,7 +91,7 @@ func (service *TicketService) ReserveTicket(ctx context.Context, authToken strin
 		return nil, helpers.CustomError("Failed to create ticket: %w", err)
 	}
 
-	service.publishTicketReservedCreated(ctx, ticket)
+	_ = service.publishTicketReservedCreated(ctx, ticket)
 
 	return ticket, nil
 }
@@ -121,7 +121,7 @@ func (service *TicketService) GetAllTicketByUser(ctx context.Context) (*[]respon
 	return &ticketResponse, nil
 }
 
-func (service *TicketService) publishTicketReservedCreated(ctx context.Context, ticket *models.Ticket) {
+func (service *TicketService) publishTicketReservedCreated(ctx context.Context, ticket *models.Ticket) error {
 	reservationMsg := publisher.TicketReservedEvent{
 		ID:       ticket.ID,
 		EventID:  ticket.EventID,
@@ -135,11 +135,20 @@ func (service *TicketService) publishTicketReservedCreated(ctx context.Context, 
 	}
 
 	err = service.publishWithRetry(ctx, "ticket.reserved", "ticket.created", reservationMsgJSON)
-	if err != nil {
-		service.Log.Error("Failed to publish ticket created event after retries", logger.Error(err))
+	if err == nil {
+		service.Log.Info("successfully to publish ticket created event after retries")
 	}
 
-	service.Log.Info("Successfully to publish ticket created")
+	err = service.publishWithRetry(ctx, "ticket.payment", "ticket.payment", reservationMsgJSON)
+	if err == nil {
+		service.Log.Info("successfully to publish ticket created payment after retries")
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (service *TicketService) publishWithRetry(ctx context.Context, exchange, routingKey string, body []byte) error {
