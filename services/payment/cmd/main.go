@@ -8,11 +8,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-playground/validator/v10"
 	"github.com/iwanlaudin/go-microservice/pkg/common/config"
 	"github.com/iwanlaudin/go-microservice/pkg/common/database"
 	"github.com/iwanlaudin/go-microservice/pkg/common/logger"
+	"github.com/iwanlaudin/go-microservice/services/payment/internal/api/routes"
 )
 
 func main() {
@@ -34,19 +34,16 @@ func main() {
 		log.Fatal("Failed to run database migrations", logger.Error(err))
 	}
 
-	// Inisialisasi router
-	r := chi.NewRouter()
+	// Initialize validator
+	validate := validator.New()
 
-	// Middleware
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
+	// Inisialisasi router
+	handler := routes.NewRouter(db, validate)
 
 	// Konfigurasi server
 	srv := &http.Server{
 		Addr:         cfg.PaymentServicePort,
-		Handler:      r,
+		Handler:      handler,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 	}
